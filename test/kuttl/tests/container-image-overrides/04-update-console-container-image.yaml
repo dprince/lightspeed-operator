@@ -17,10 +17,10 @@ spec:
     containerImage: quay.io/openstack-lightspeed/rag-content:os-docs-2026.1-ogx
   ogx:
     logLevel: DEBUG
-    containerImage: quay.io/lightspeed-core/lightspeed-stack:dev-latest
+    containerImage: quay.io/lightspeed-core/lightspeed-stack:0.7.0rc3
   lcore:
     logLevel: WARNING
-    containerImage: quay.io/lightspeed-core/lightspeed-stack:dev-latest
+    containerImage: quay.io/lightspeed-core/lightspeed-stack:0.7.0rc3
   dataverseExporter:
     logLevel: DEBUG
     containerImage: quay.io/lightspeed-core/lightspeed-to-dataverse-exporter:latest
