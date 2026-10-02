@@ -17,6 +17,7 @@ limitations under the License.
 package controller
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -27,28 +28,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
-
-// TestOKPChunkFilterQueryFmtExcludesOpenShiftVirtualization guards against OKP RAG
-// answers being grounded in OpenShift Virtualization docs when the query is about
-// OpenStack. OpenShift Virtualization docs share the same "openshift_container_platform"
-// product as docs we want to keep (e.g. Migration Toolkit for Containers), so they can
-// only be distinguished by their parent_id path (".../html-single/virtualization/index").
-func TestOKPChunkFilterQueryFmtExcludesOpenShiftVirtualization(t *testing.T) {
-	query := fmt.Sprintf(OKPChunkFilterQueryFmt, "18.0", "4.21")
-
-	if !strings.Contains(query, "product:*openstack* AND product_version:18.0") {
-		t.Errorf("expected OpenStack clause with version 18.0, got: %s", query)
-	}
-	if !strings.Contains(query, "product:*openshift*") {
-		t.Errorf("expected OpenShift clause, got: %s", query)
-	}
-	if !strings.Contains(query, "product_version:4.21") {
-		t.Errorf("expected OpenShift clause with version 4.21, got: %s", query)
-	}
-	if !strings.Contains(query, "-parent_id:*html-single/virtualization/*") {
-		t.Errorf("expected OpenShift Virtualization docs to be excluded via parent_id, got: %s", query)
-	}
-}
 
 func TestGenerateRandomStringLength(t *testing.T) {
 	t.Run("Below minimum length returns error", func(t *testing.T) {
@@ -213,6 +192,45 @@ func TestBuildMCPServerConfigMap_UsesDevRhosMCPConfig(t *testing.T) {
 	}
 	if !containsAll(configData, "debug: true", "workers: 2") {
 		t.Errorf("expected merged config to contain user overrides, got:\n%s", configData)
+	}
+}
+
+func TestGetOKPChunkFilterQuery_DevConfigOverride(t *testing.T) {
+	devRaw, err := json.Marshal(map[string]interface{}{
+		"okpChunkFilterQuery": "product:\"Custom Product\"",
+	})
+	if err != nil {
+		t.Fatalf("failed to marshal dev config: %v", err)
+	}
+
+	instance := &apiv1beta1.OpenStackLightspeed{
+		ObjectMeta: metav1.ObjectMeta{Name: "test", Namespace: "test-ns"},
+		Spec: apiv1beta1.OpenStackLightspeedSpec{
+			Dev: runtime.RawExtension{Raw: devRaw},
+		},
+	}
+	h := newTestHelper(t)
+
+	got := getOKPChunkFilterQuery(context.Background(), h, instance)
+	want := `product:"Custom Product"`
+	if got != want {
+		t.Errorf("getOKPChunkFilterQuery() = %q, want %q", got, want)
+	}
+}
+
+// TestOKPChunkFilterQueryFmt guards the Solr fq clause sent to okp-mcp's "portal" core:
+// product is matched by exact string (not product_version, which belongs to an unrelated
+// product-catalog field on that core), and documentation_version uses a trailing wildcard
+// since the exact stored version granularity isn't guaranteed to match the computed
+// OCP/RHOSO version strings.
+func TestOKPChunkFilterQueryFmt(t *testing.T) {
+	query := fmt.Sprintf(OKPChunkFilterQueryFmt, "18.0", "4.21")
+
+	if !strings.Contains(query, `product:"OpenStack Platform" AND documentation_version:18.0*`) {
+		t.Errorf("expected OpenStack clause with version 18.0, got: %s", query)
+	}
+	if !strings.Contains(query, `product:"OpenShift Container Platform" AND documentation_version:4.21*`) {
+		t.Errorf("expected OpenShift clause with version 4.21, got: %s", query)
 	}
 }
 

@@ -86,6 +86,8 @@ spec:
             value: quay.io/sclorg/postgresql-16-c10s:latest
           - name: RELATED_IMAGE_OKP_IMAGE_URL_DEFAULT
             value: registry.redhat.io/offline-knowledge-portal/rhokp-rhel9:latest
+          - name: RELATED_IMAGE_OKP_MCP_IMAGE_URL_DEFAULT
+            value: quay.io/redhat-services-prod/rhel-lightspeed-tenant/rhel-knowledge-bridge:latest
           - name: RELATED_IMAGE_CONSOLE_IMAGE_URL_DEFAULT
             value: registry.redhat.io/openshift-lightspeed/lightspeed-console-plugin-rhel9:1.0.12
           - name: RELATED_IMAGE_CONSOLE_PF5_IMAGE_URL_DEFAULT

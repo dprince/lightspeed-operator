@@ -45,6 +45,9 @@ status:
     - type: OpenStackLightspeedMCPServerReady
       status: "True"
       message: "RHOSO MCP server is disabled (rhoso_mcps feature flag not set)"
+    - type: OpenStackLightspeedOKPMCPReady
+      status: "True"
+      message: "OKP MCP server is ready"
     - type: OpenStackLightspeedReady
       status: "True"
       reason: Ready

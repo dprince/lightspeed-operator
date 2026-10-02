@@ -102,6 +102,8 @@ spec:
           ports:
             - name: okp
               containerPort: 8080
+            - name: solr
+              containerPort: 8983
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true
@@ -125,6 +127,48 @@ spec:
       port: 8080
       protocol: TCP
       targetPort: okp
+    - name: solr
+      port: 8983
+      protocol: TCP
+      targetPort: solr
+  type: ClusterIP
+
+# OKP MCP search server
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lightspeed-okp-mcp
+  namespace: openstack-lightspeed
+spec:
+  template:
+    spec:
+      containers:
+        - name: okp-mcp
+          image: quay.io/redhat-services-prod/rhel-lightspeed-tenant/rhel-knowledge-bridge:latest
+          env:
+            - name: MCP_TRANSPORT
+              value: streamable-http
+            - name: MCP_PORT
+              value: "8000"
+            - name: MCP_SOLR_URL
+              value: http://lightspeed-okp-server.openstack-lightspeed.svc:8983
+status:
+  replicas: 1
+  readyReplicas: 1
+  availableReplicas: 1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lightspeed-okp-mcp
+  namespace: openstack-lightspeed
+spec:
+  ports:
+    - name: mcp
+      port: 8000
+      protocol: TCP
+      targetPort: mcp
   type: ClusterIP
 
 # LCore resources
@@ -281,8 +325,6 @@ spec:
               value: all=debug
             - name: VECTOR_DB_DATA_PATH
               value: /vector-db-discovered-values
-            - name: RH_SERVER_OKP
-              value: http://lightspeed-okp-server.openstack-lightspeed.svc:8080
           volumeMounts:
             - name: ca-bundle
               mountPath: /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
@@ -305,8 +347,6 @@ spec:
           env:
             - name: LIGHTSPEED_STACK_LOG_LEVEL
               value: WARNING
-            - name: RH_SERVER_OKP
-              value: http://lightspeed-okp-server.openstack-lightspeed.svc:8080
             - name: OTEL_SDK_DISABLED
               value: "true"
             - name: POSTGRESQL_PASSWORD
@@ -530,7 +570,6 @@ spec:
         cpu: 500m
         memory: 2Gi
   okp:
-    offline: true
     resources:
       limits:
         cpu: "2"
@@ -547,6 +586,9 @@ status:
     - type: OpenStackLightspeedMCPServerReady
       status: "True"
       message: "RHOSO MCP server is disabled (rhoso_mcps feature flag not set)"
+    - type: OpenStackLightspeedOKPMCPReady
+      status: "True"
+      message: "OKP MCP server is ready"
     - type: OpenStackLightspeedReady
       status: "True"
       reason: Ready

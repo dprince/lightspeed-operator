@@ -17,10 +17,37 @@ limitations under the License.
 package controller
 
 import (
+	"context"
 	"testing"
 
 	apiv1beta1 "github.com/openstack-k8s-operators/lightspeed-operator/api/v1beta1"
+	"sigs.k8s.io/yaml"
 )
+
+func TestBuildLCoreConfigYAML_UsesOKPMCP(t *testing.T) {
+	instance := makeContainerImageTestInstance()
+	h := newTestHelper(t)
+	data, err := buildLCoreConfigYAML(context.Background(), h, instance)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var config map[string]interface{}
+	if err := yaml.Unmarshal([]byte(data), &config); err != nil {
+		t.Fatal(err)
+	}
+	servers := config["mcp_servers"].([]interface{})
+	okp := servers[0].(map[string]interface{})
+	assertField(t, okp, "name", "okp")
+	assertField(t, okp, "url", "http://lightspeed-okp-mcp.test-ns.svc:8000/mcp")
+	rag := config["rag"].(map[string]interface{})
+	if _, ok := rag["okp"]; ok {
+		t.Fatal("legacy OKP RAG configuration remains")
+	}
+	inline := rag["retrieval"].(map[string]interface{})["inline"].(map[string]interface{})
+	if len(inline["sources"].([]interface{})) != 0 {
+		t.Fatalf("base inline sources should be populated only by bundled vector data: %v", inline["sources"])
+	}
+}
 
 func TestBuildLCoreQuotaHandlersConfig_DisabledWhenNoLimiters(t *testing.T) {
 	h := newTestHelper(t)

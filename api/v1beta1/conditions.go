@@ -31,6 +31,9 @@ const (
 	// OpenStackLightspeedMCPServerReadyCondition is set to True when the MCP server
 	// deployment succeeds. False indicates a failure during MCP server deployment.
 	OpenStackLightspeedMCPServerReadyCondition condition.Type = "OpenStackLightspeedMCPServerReady"
+
+	// OpenStackLightspeedOKPMCPReadyCondition tracks the managed OKP search MCP server.
+	OpenStackLightspeedOKPMCPReadyCondition condition.Type = "OpenStackLightspeedOKPMCPReady"
 )
 
 // Common Messages used by API objects.
@@ -67,6 +70,8 @@ const (
 
 	// OpenStackLightspeedMCPServerDisabledMessage
 	OpenStackLightspeedMCPServerDisabledMessage = "RHOSO MCP server is disabled (rhoso_mcps feature flag not set)"
+	OpenStackLightspeedOKPMCPReadyMessage       = "OKP MCP server is ready"
+	OpenStackLightspeedOKPMCPWaitingMessage     = "Waiting for OKP MCP server deployment"
 
 	// DeploymentCheckFailedMessage
 	DeploymentCheckFailedMessage = "Failed to check deployment status; see operator logs for details"

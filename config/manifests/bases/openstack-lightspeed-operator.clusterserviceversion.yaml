@@ -182,4 +182,6 @@ spec:
     name: rag-content
   - image: quay.io/lightspeed-core/lightspeed-stack:0.7.0rc3
     name: ogx
+  - image: quay.io/redhat-services-prod/rhel-lightspeed-tenant/rhel-knowledge-bridge:latest
+    name: okp-mcp
   version: 0.0.0

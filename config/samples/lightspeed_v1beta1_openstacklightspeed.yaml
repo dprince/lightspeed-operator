@@ -61,8 +61,6 @@ spec:
   # dev:
   #   featureFlags:
   #     - rhoso_mcps
-  #   okpChunkFilterQuery: "product:(*openstack* OR *openshift*)"
-  #   okpRagOnly: true
   #   # Custom MCP server config (deep-merged with operator defaults;
   #   # openstack.enabled and openshift.enabled are always overridden):
   #   rhosMCP:
@@ -78,7 +76,6 @@ spec:
   #     containerImage: quay.io/openstack-lightspeed/lightspeed-mcps:latest
   # okp:
   #   accessKey: okp-access-key-secret
-  #   offline: true
   #   resources:
   #     requests:
   #       cpu: "500m"
@@ -87,6 +84,14 @@ spec:
   #       cpu: "2"
   #       memory: "4Gi"
   #   containerImage: registry.redhat.io/offline-knowledge-portal/rhokp-rhel9:latest
+  #   mcp:
+  #     containerImage: quay.io/redhat-services-prod/rhel-lightspeed-tenant/rhel-knowledge-bridge:latest
+  #     resources:
+  #       requests:
+  #         cpu: "50m"
+  #         memory: "300Mi"
+  #       limits:
+  #         memory: "500Mi"
   # console:
   #   resources:
   #     requests:

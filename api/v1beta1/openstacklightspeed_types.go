@@ -48,7 +48,8 @@ const (
 	ConsoleContainerImagePF5 = "registry.redhat.io/openshift-lightspeed/lightspeed-console-plugin-pf5-rhel9:1.0.12"
 
 	// OKPContainerImage is the fall-back container image for OKP (Offline Knowledge Portal)
-	OKPContainerImage = "registry.redhat.io/offline-knowledge-portal/rhokp-rhel9:latest"
+	OKPContainerImage    = "registry.redhat.io/offline-knowledge-portal/rhokp-rhel9:latest"
+	OKPMCPContainerImage = "quay.io/redhat-services-prod/rhel-lightspeed-tenant/rhel-knowledge-bridge:latest"
 
 	// MCPServerContainerImage is the fall-back container image for the MCP server
 	MCPServerContainerImage = "quay.io/openstack-lightspeed/lightspeed-mcps:latest"
@@ -64,13 +65,11 @@ const (
 //
 // Supported fields:
 //   - featureFlags: list of experimental feature flags to enable. Configuration options for experimental features must also live within the `DevSpec`.
-//   - okpChunkFilterQuery: Solr filter query for OKP searches (default: version-aware query combining detected OpenStack and OCP versions)
-//   - okpRagOnly: when true, only OKP is used as a RAG source (default: true)
+//   - okpChunkFilterQuery: Solr fq clause for OKP searches (default: version-aware query combining detected OpenStack and OCP versions)
 //   - rhosMCP: configuration for the rhos-mcps sidecar (resources, container image override, and custom YAML config); config is deep-merged on top of the operator defaults, openstack.enabled and openshift.enabled are always overridden by the operator
 type DevSpec struct {
 	FeatureFlags        []string `json:"featureFlags,omitempty"`
 	OKPChunkFilterQuery string   `json:"okpChunkFilterQuery,omitempty"`
-	OKPRagOnly          *bool    `json:"okpRagOnly,omitempty"`
 	// rhosMCP configures the rhos-mcps sidecar container (only used when the rhoso_mcps feature flag is enabled).
 	RhosMCP *RhosMCPSpec `json:"rhosMCP,omitempty"`
 }
@@ -91,13 +90,6 @@ type RhosMCPSpec struct {
 // OKPSpec defines configuration for the Offline Knowledge Portal (OKP).
 type OKPSpec struct {
 	// +kubebuilder:validation:Optional
-	// +kubebuilder:default=true
-	// Offline controls how source URLs are resolved.
-	// When true, uses parent_id (offline/Mimir-style).
-	// When false, uses reference_url (online).
-	Offline *bool `json:"offline,omitempty"`
-
-	// +kubebuilder:validation:Optional
 	// AccessKey is the name of the Secret containing the access key for the OKP server.
 	// The secret must contain a key named "access_key".
 	// An access key can be obtained from https://access.redhat.com/offline/access
@@ -111,6 +103,19 @@ type OKPSpec struct {
 	// +kubebuilder:validation:Optional
 	// ContainerImage overrides the OKP container image. When unset, the operator default is used.
 	ContainerImage string `json:"containerImage,omitempty"`
+
+	// MCP configures the server that exposes OKP search as an MCP tool.
+	MCP *OKPMCPSpec `json:"mcp,omitempty"`
+}
+
+// OKPMCPSpec configures the managed OKP MCP server.
+type OKPMCPSpec struct {
+	// ContainerImage overrides the OKP MCP container image.
+	ContainerImage string `json:"containerImage,omitempty"`
+
+	// +kubebuilder:default:={requests: {cpu: "50m", memory: "300Mi"}, limits: {memory: "500Mi"}}
+	// Resources sets compute resources for the OKP MCP container.
+	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 }
 
 // OGXSpec defines configuration for the OGX container.
@@ -281,7 +286,7 @@ type OpenStackLightspeedSpec struct {
 
 	// +kubebuilder:validation:Optional
 	// +kubebuilder:default:={}
-	// OKP configures the Offline Knowledge Portal (OKP) RAG source.
+	// OKP configures the Offline Knowledge Portal and its MCP search server.
 	OKP *OKPSpec `json:"okp,omitempty"`
 
 	// +kubebuilder:validation:Optional
@@ -490,6 +495,7 @@ type OpenStackLightspeedDefaults struct {
 	ConsoleImageURL      string
 	ConsoleImagePF5URL   string
 	OKPImageURL          string
+	OKPMCPImageURL       string
 	MCPServerImageURL    string
 	MaxTokensForResponse int
 }
@@ -519,6 +525,8 @@ func SetupDefaults() {
 			"RELATED_IMAGE_CONSOLE_PF5_IMAGE_URL_DEFAULT", ConsoleContainerImagePF5),
 		OKPImageURL: util.GetEnvVar(
 			"RELATED_IMAGE_OKP_IMAGE_URL_DEFAULT", OKPContainerImage),
+		OKPMCPImageURL: util.GetEnvVar(
+			"RELATED_IMAGE_OKP_MCP_IMAGE_URL_DEFAULT", OKPMCPContainerImage),
 		MCPServerImageURL: util.GetEnvVar(
 			"RELATED_IMAGE_MCP_SERVER_IMAGE_URL_DEFAULT", MCPServerContainerImage),
 		MaxTokensForResponse: MaxTokensForResponseDefault,

@@ -360,10 +360,10 @@ func reconcileNetworkPolicy(ctx context.Context, h *common_helper.Helper, _ *api
 	return nil
 }
 
-// lcoreDependenciesReady reports whether the Postgres and OKP deployments that
-// LCore depends on at startup are both ready before proceeding with the deployment.
+// lcoreDependenciesReady reports whether Postgres, OKP, and its MCP server are
+// ready before starting LCore.
 func lcoreDependenciesReady(ctx context.Context, h *common_helper.Helper, instance *apiv1beta1.OpenStackLightspeed) (bool, error) {
-	for _, name := range []string{PostgresDeploymentName, OKPDeploymentName} {
+	for _, name := range []string{PostgresDeploymentName, OKPDeploymentName, OKPMCPDeploymentName} {
 		deployment, err := getDeployment(ctx, h, name, instance.Namespace)
 		if err != nil {
 			if errors.IsNotFound(err) {
@@ -387,7 +387,7 @@ func reconcileDeployment(ctx context.Context, h *common_helper.Helper, instance 
 		return err
 	}
 	if !ready {
-		logger.Info("Postgres and/or OKP not ready yet, deferring LCore Deployment reconcile")
+		logger.Info("Postgres, OKP, or OKP MCP not ready yet, deferring LCore Deployment reconcile")
 		return nil
 	}
 

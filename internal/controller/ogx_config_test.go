@@ -74,6 +74,13 @@ func checkModelCommonConfig(modelConfig map[string]interface{}, instance *apiv1b
 }
 
 var _ = ginkgo.Describe("OGX config", func() {
+	ginkgo.It("keeps OKP Solr out of the OGX vector configuration", func() {
+		instance := getOpenStackLightspeedProvidersInstance(OpenAIProviderName)
+		providers := buildOGXVectorIO(nil, instance)
+		gomega.Expect(providers).To(gomega.HaveLen(1))
+		gomega.Expect(providers[0].(map[string]interface{})["provider_id"]).To(gomega.Equal("faiss"))
+		gomega.Expect(buildOGXVectorStores(nil, instance)).To(gomega.BeEmpty())
+	})
 	ginkgo.Describe("buildOGXInferenceProviders", func() {
 		ginkgo.DescribeTable("should return correct inference providers config",
 			func(provider, providerType string, checkConfig func(map[string]interface{}, *apiv1beta1.OpenStackLightspeed)) {
@@ -135,15 +142,11 @@ var _ = ginkgo.Describe("OGX config", func() {
 				instance := getOpenStackLightspeedProvidersInstance(provider)
 				modelsConfig := buildOGXModels(nil, instance)
 
-				gomega.Expect(modelsConfig).To(gomega.HaveLen(2))
+				gomega.Expect(modelsConfig).To(gomega.HaveLen(1))
 
 				modelConfig := modelsConfig[0].(map[string]interface{})
 				checkModelCommonConfig(modelConfig, instance)
 
-				okpModel := modelsConfig[1].(map[string]interface{})
-				gomega.Expect(okpModel["model_id"]).To(gomega.Equal("solr_embedding"))
-				gomega.Expect(okpModel["model_type"]).To(gomega.Equal("embedding"))
-				gomega.Expect(okpModel["provider_id"]).To(gomega.Equal("sentence-transformers"))
 			},
 			ginkgo.Entry("for openai", OpenAIProviderName),
 			ginkgo.Entry("for gemini", GeminiProviderName),

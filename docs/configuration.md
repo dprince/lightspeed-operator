@@ -99,13 +99,16 @@ spec:
 The optional RHOSO MCP sidecar has default resources of `50m` CPU and `300Mi`
 memory requested, with a `500Mi` memory limit. Configure it at
 `dev.rhosMCP.resources` when the `rhoso_mcps` feature flag is enabled.
+The managed OKP MCP server uses the same defaults; configure it at
+`spec.okp.mcp.resources`.
 
 ## Container images
 
 Each managed workload can use a custom image. Set `containerImage` under the
 relevant component: `rag`, `ogx`, `lcore`, `database`, `dataverseExporter`,
 `okp`, or `console`; for the optional MCP sidecar use
-`dev.rhosMCP.containerImage`. When omitted, the operator uses its configured
+`dev.rhosMCP.containerImage`, and for OKP search use
+`okp.mcp.containerImage`. When omitted, the operator uses its configured
 default image. For example, to configure LCORE container image:
 
 ```yaml
@@ -130,7 +133,8 @@ spec:
 spec:
   okp:
     accessKey: okp-access-key-secret   # Secret key: "access_key"
-    offline: true                      # default: resolve documentation URLs offline
+    mcp:
+      containerImage: quay.io/redhat-services-prod/rhel-lightspeed-tenant/rhel-knowledge-bridge:latest
 ```
 
 - **No `accessKey`** (default) — you can navigate directly to and read
@@ -142,8 +146,14 @@ spec:
   knowledgebase. Needs an active Red Hat Satellite subscription ([get one](https://access.redhat.com/offline/access)) — a bonus if you already
   have one, not something every user needs.
 
-By default, **RAG grounding is OKP-only** — the bundled community
-documentation is disabled unless you set `dev.okpRagOnly: false` (below).
+The operator deploys a separate OKP MCP server, which searches OKP's Solr
+index through the `solr_query` tool. Bundled community documentation is the
+default inline RAG source. The reference MCP tool searches the `portal`
+collection without product or version filtering.
+
+When upgrading, remove `spec.okp.offline`, `dev.okpChunkFilterQuery`, and
+`dev.okpRagOnly` from existing custom resources. The MCP tool does not use
+these former RAG settings.
 
 
 ## Quota enforcement
@@ -204,8 +214,6 @@ spec:
   dev:
     featureFlags:
       - rhoso_mcps   # enables the read-only MCP introspection sidecar
-    okpChunkFilterQuery: "product:(*openstack* OR *openshift*)"  # example override
-    okpRagOnly: false  # include bundled community docs too, not just OKP
     rhosMCP:
       config: |
         debug: true
@@ -219,10 +227,6 @@ spec:
       containerImage: quay.io/openstack-lightspeed/lightspeed-mcps:latest
 ```
 
-- `okpChunkFilterQuery` and `okpRagOnly` take effect immediately, with
-  no `featureFlags` entry needed — they're independent of
-  `rhoso_mcps`. If unset, `okpChunkFilterQuery` auto-detects your
-  OpenShift/RHOSO versions instead of using the literal example above.
 - `rhoso_mcps` — the one flag that does need to be set. Deploys the MCP
   introspection sidecar, which is read-only **by default**. See
   [Usage](usage.md).

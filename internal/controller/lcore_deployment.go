@@ -340,7 +340,6 @@ func buildInitContainers(instance *apiv1beta1.OpenStackLightspeed, initResources
 		Command: []string{
 			"sh", VectorDBScriptsMountPath + "/" + VectorDBCollectScriptKey,
 			"--vector-db-path", VectorDBVolumeMountPath,
-			"--enable-okp",
 		},
 		SecurityContext: securityContext,
 		Resources:       initResources,
@@ -367,11 +366,6 @@ func buildInitContainers(instance *apiv1beta1.OpenStackLightspeed, initResources
 		"--ogx-config-path", OGXConfigInitContainerMountPath,
 		"--lightspeed-stack-path", LightspeedStackInitContainerMountPath,
 	}
-	devConfig, _ := instance.ParseDevConfig()
-	if devConfig.OKPRagOnly == nil || *devConfig.OKPRagOnly {
-		configBuildCmd = append(configBuildCmd, "--disable-rag-entries")
-	}
-
 	containers = append(containers, corev1.Container{
 		Name:            "vector-database-config-build",
 		Image:           instance.LightspeedContainerImage(),
@@ -728,11 +722,6 @@ func buildOGXEnvVars(ctx context.Context, h *common_helper.Helper, instance *api
 		Value: VectorDBVolumeMountPath,
 	})
 
-	envVars = append(envVars, corev1.EnvVar{
-		Name:  "RH_SERVER_OKP",
-		Value: fmt.Sprintf("http://%s.%s.svc:%d", OKPServiceName, instance.GetNamespace(), OKPServicePort),
-	})
-
 	return envVars, nil
 }
 
@@ -773,10 +762,6 @@ func buildLightspeedStackEnvVars(instance *apiv1beta1.OpenStackLightspeed) []cor
 			Value: getLightspeedLogLevel(instance),
 		},
 	}
-	envVars = append(envVars, corev1.EnvVar{
-		Name:  "RH_SERVER_OKP",
-		Value: fmt.Sprintf("http://%s.%s.svc:%d", OKPServiceName, instance.GetNamespace(), OKPServicePort),
-	})
 	envVars = append(envVars, corev1.EnvVar{
 		Name:  "OTEL_SDK_DISABLED",
 		Value: "true",

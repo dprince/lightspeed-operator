@@ -201,6 +201,11 @@ func (r *OpenStackLightspeedReconciler) Reconcile(ctx context.Context, req ctrl.
 			condition.InitReason,
 			apiv1beta1.OpenStackLightspeedMCPServerInitMessage,
 		),
+		condition.UnknownCondition(
+			apiv1beta1.OpenStackLightspeedOKPMCPReadyCondition,
+			condition.InitReason,
+			apiv1beta1.OpenStackLightspeedOKPMCPWaitingMessage,
+		),
 	)
 
 	instance.Status.Conditions.Init(&cl)
@@ -292,6 +297,7 @@ func (r *OpenStackLightspeedReconciler) reconcileStatus(
 	deployments := []string{
 		PostgresDeploymentName,
 		OKPDeploymentName,
+		OKPMCPDeploymentName,
 		LCoreDeploymentName,
 		ConsoleUIDeploymentName,
 	}
@@ -299,6 +305,9 @@ func (r *OpenStackLightspeedReconciler) reconcileStatus(
 		deployment, err := getDeployment(ctx, helper, deploymentName, instance.Namespace)
 		if err != nil {
 			if k8s_errors.IsNotFound(err) {
+				if deploymentName == OKPMCPDeploymentName {
+					instance.Status.Conditions.Set(condition.FalseCondition(apiv1beta1.OpenStackLightspeedOKPMCPReadyCondition, condition.RequestedReason, condition.SeverityInfo, apiv1beta1.OpenStackLightspeedOKPMCPWaitingMessage))
+				}
 				// Deployment not created yet, e.g. LCore waiting on its
 				// Postgres/OKP dependencies. Treat the same as not-ready.
 				instance.Status.Conditions.Set(condition.FalseCondition(
@@ -321,6 +330,9 @@ func (r *OpenStackLightspeedReconciler) reconcileStatus(
 		}
 
 		if !isDeploymentReady(deployment) {
+			if deploymentName == OKPMCPDeploymentName {
+				instance.Status.Conditions.Set(condition.FalseCondition(apiv1beta1.OpenStackLightspeedOKPMCPReadyCondition, condition.RequestedReason, condition.SeverityInfo, apiv1beta1.OpenStackLightspeedOKPMCPWaitingMessage))
+			}
 			instance.Status.Conditions.Set(condition.FalseCondition(
 				apiv1beta1.OpenStackLightspeedReadyCondition,
 				condition.RequestedReason,
@@ -329,6 +341,9 @@ func (r *OpenStackLightspeedReconciler) reconcileStatus(
 				deploymentName,
 			))
 			return ctrl.Result{RequeueAfter: ResourceCreationTimeout}, nil
+		}
+		if deploymentName == OKPMCPDeploymentName {
+			instance.Status.Conditions.MarkTrue(apiv1beta1.OpenStackLightspeedOKPMCPReadyCondition, apiv1beta1.OpenStackLightspeedOKPMCPReadyMessage)
 		}
 	}
 

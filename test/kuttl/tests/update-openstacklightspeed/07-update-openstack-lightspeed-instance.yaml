@@ -76,5 +76,3 @@ spec:
       limits:
         cpu: "2"
         memory: "5Gi"
-  dev:
-    okpChunkFilterQuery: "product:(*openstack* OR *openshift*)"

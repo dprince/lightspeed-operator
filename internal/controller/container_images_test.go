@@ -21,6 +21,7 @@ import (
 
 	apiv1beta1 "github.com/openstack-k8s-operators/lightspeed-operator/api/v1beta1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -31,6 +32,7 @@ const (
 	testExporterImage   = "example.com/exporter:override"
 	testPostgresImage   = "example.com/postgres:override"
 	testOKPImage        = "example.com/okp:override"
+	testOKPMCPImage     = "example.com/okp-mcp:override"
 	testConsoleImage    = "example.com/console:override"
 )
 
@@ -43,6 +45,7 @@ func setContainerImageTestDefaults(t *testing.T) {
 		ExporterImageURL:   "default/exporter:1",
 		PostgresImageURL:   "default/postgres:1",
 		OKPImageURL:        "default/okp:1",
+		OKPMCPImageURL:     "default/okp-mcp:1",
 		ConsoleImageURL:    "default/console-pf6:1",
 		ConsoleImagePF5URL: "default/console-pf5:1",
 	}
@@ -71,7 +74,7 @@ func makeContainerImageTestInstance() *apiv1beta1.OpenStackLightspeed {
 			},
 			Console:  &apiv1beta1.ConsoleSpec{ContainerImage: testConsoleImage},
 			Database: &apiv1beta1.DatabaseSpec{ContainerImage: testPostgresImage},
-			OKP:      &apiv1beta1.OKPSpec{ContainerImage: testOKPImage},
+			OKP:      &apiv1beta1.OKPSpec{ContainerImage: testOKPImage, MCP: &apiv1beta1.OKPMCPSpec{ContainerImage: testOKPMCPImage}},
 		},
 	}
 }
@@ -116,6 +119,43 @@ func TestBuildOKPPodTemplateSpec_UsesContainerImageOverride(t *testing.T) {
 	}
 	if got := podTemplate.Spec.Containers[0].Image; got != testOKPImage {
 		t.Errorf("okp image = %q, want %q", got, testOKPImage)
+	}
+	container := podTemplate.Spec.Containers[0]
+	if len(container.Ports) != 2 || container.Ports[1].ContainerPort != OKPSolrPort {
+		t.Errorf("OKP does not expose the Solr port: %v", container.Ports)
+	}
+	if container.Env[0].Name != "SOLR_JETTY_HOST" || container.Env[0].Value != "0.0.0.0" {
+		t.Errorf("OKP Solr is not bound to the pod network: %v", container.Env)
+	}
+}
+
+func TestBuildOKPMCPPodTemplateSpec(t *testing.T) {
+	setContainerImageTestDefaults(t)
+	instance := makeContainerImageTestInstance()
+	pod := buildOKPMCPPodTemplateSpec(instance, `product:"OpenStack Platform"`)
+	container := pod.Spec.Containers[0]
+	if container.Image != testOKPMCPImage {
+		t.Fatalf("MCP image = %q, want %q", container.Image, testOKPMCPImage)
+	}
+	if container.Env[2].Value != "http://lightspeed-okp-server.test-ns.svc:8983" {
+		t.Errorf("MCP Solr URL = %q", container.Env[2].Value)
+	}
+	if container.Env[3].Name != "MCP_OKP_SCOPE_FILTER" || container.Env[3].Value != `product:"OpenStack Platform"` {
+		t.Errorf("MCP scope filter env var = %+v", container.Env[3])
+	}
+	if container.ReadinessProbe.TCPSocket.Port.StrVal != "mcp" {
+		t.Errorf("MCP readiness probe does not check the MCP port")
+	}
+	if got := container.Resources.Requests.Memory().String(); got != "300Mi" {
+		t.Errorf("MCP default memory request = %q", got)
+	}
+	instance.Spec.OKP.MCP.Resources.Requests = corev1.ResourceList{corev1.ResourceMemory: resource.MustParse("400Mi")}
+	resources := okpMCPResources(instance)
+	if got := resources.Requests.Memory().String(); got != "400Mi" {
+		t.Errorf("MCP memory override = %q", got)
+	}
+	if got := resources.Requests.Cpu().String(); got != "50m" {
+		t.Errorf("MCP CPU default was lost: %q", got)
 	}
 }
 

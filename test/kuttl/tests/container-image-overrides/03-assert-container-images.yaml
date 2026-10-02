@@ -41,6 +41,22 @@ status:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: lightspeed-okp-mcp
+  namespace: openstack-lightspeed
+spec:
+  template:
+    spec:
+      containers:
+        - name: okp-mcp
+          image: quay.io/redhat-services-prod/rhel-lightspeed-tenant/rhel-knowledge-bridge:latest
+status:
+  replicas: 1
+  readyReplicas: 1
+  availableReplicas: 1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
   name: lightspeed-stack-deployment
   namespace: openstack-lightspeed
 spec:
@@ -124,7 +140,8 @@ spec:
         memory: 2Gi
   okp:
     containerImage: registry.redhat.io/offline-knowledge-portal/rhokp-rhel9:latest
-    offline: true
+    mcp:
+      containerImage: quay.io/redhat-services-prod/rhel-lightspeed-tenant/rhel-knowledge-bridge:latest
     resources:
       limits:
         cpu: "2"
@@ -143,6 +160,9 @@ status:
     - type: OpenStackLightspeedMCPServerReady
       status: "True"
       message: "RHOSO MCP server is disabled (rhoso_mcps feature flag not set)"
+    - type: OpenStackLightspeedOKPMCPReady
+      status: "True"
+      message: "OKP MCP server is ready"
     - type: OpenStackLightspeedReady
       status: "True"
       reason: Ready

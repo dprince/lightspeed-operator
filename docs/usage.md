@@ -11,11 +11,10 @@ once `OpenStackLightspeed` is `Ready`:
 - "How can I spin up a VM using the OpenStack CLI?"
 - "Why would a Nova compute service show as down?"
 
-Answers are grounded via RAG, with references you can verify. By default,
-grounding comes from the [Offline knowledge portal](configuration.md#offline-knowledge-portal) (always deployed, no
-credentials needed to browse — see [Configuration](configuration.md) for the free vs.
-keyed tiers). The bundled community documentation is also available, but
-only if you set `dev.okpRagOnly: false`.
+Answers can use bundled community documentation through inline RAG and search
+the [Offline knowledge portal](configuration.md#offline-knowledge-portal)
+through an MCP tool. OKP search requires an access key; see
+[Configuration](configuration.md) for the available tiers.
 
 ## Cluster introspection (optional)
 

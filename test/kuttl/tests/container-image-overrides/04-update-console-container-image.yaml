@@ -30,8 +30,6 @@ spec:
     containerImage: quay.io/sclorg/postgresql-16-c10s:latest
   okp:
     containerImage: registry.redhat.io/offline-knowledge-portal/rhokp-rhel9:latest
-  dev:
-    okpChunkFilterQuery: "product:(*openstack* OR *openshift*)"
   quotas:
     limiters:
       - name: per-user-hourly

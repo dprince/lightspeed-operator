@@ -192,7 +192,8 @@ func isRHOSOMCPEnabled(instance *apiv1beta1.OpenStackLightspeed) (bool, error) {
 	return slices.Contains(devConfig.FeatureFlags, "rhoso_mcps"), nil
 }
 
-// getOKPChunkFilterQuery returns the chunk filter query from the dev config, or a version-aware default.
+// getOKPChunkFilterQuery returns the OKP search scope filter from the dev config override, or a
+// version-aware default computed from the detected OpenShift/RHOSO versions.
 func getOKPChunkFilterQuery(ctx context.Context, h *common_helper.Helper, instance *apiv1beta1.OpenStackLightspeed) string {
 	devConfig, _ := instance.ParseDevConfig()
 	if devConfig.OKPChunkFilterQuery != "" {

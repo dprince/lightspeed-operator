@@ -286,19 +286,6 @@ ingress_connection_timeout: 30
 	}
 }
 
-func buildOKPConfig(ctx context.Context, h *common_helper.Helper, instance *apiv1beta1.OpenStackLightspeed) map[string]interface{} {
-	offline := true
-	if instance.Spec.OKP != nil && instance.Spec.OKP.Offline != nil {
-		offline = *instance.Spec.OKP.Offline
-	}
-
-	return map[string]interface{}{
-		"rhokp_url":          "${env.RH_SERVER_OKP}",
-		"offline":            offline,
-		"chunk_filter_query": getOKPChunkFilterQuery(ctx, h, instance),
-	}
-}
-
 // buildLCoreMCPServersConfig generates the mcp_servers section for lightspeed-stack config.
 // The OpenShift MCP (rhoso-ocp-tools) is always included.
 // The OpenStack MCP (rhoso-osp-tools) is only included when openStackReady is true.
@@ -338,7 +325,7 @@ func buildLCoreMCPServersConfigIfEnabled(instance *apiv1beta1.OpenStackLightspee
 // NOTE: tools approval features are disabled for OpenStack Lightspeed.
 func buildLCoreConfigYAML(ctx context.Context, h *common_helper.Helper, instance *apiv1beta1.OpenStackLightspeed) (string, error) {
 
-	ragInline := []interface{}{"okp"}
+	ragInline := []interface{}{}
 	ragConfig := map[string]interface{}{
 		"inline": map[string]interface{}{
 			"sources": ragInline,
@@ -349,6 +336,10 @@ func buildLCoreConfigYAML(ctx context.Context, h *common_helper.Helper, instance
 	if err != nil {
 		return "", err
 	}
+	mcpServers = append([]interface{}{map[string]interface{}{
+		"name": "okp", "provider_id": "model-context-protocol",
+		"url": fmt.Sprintf("http://%s.%s.svc:%d/mcp", OKPMCPServiceName, instance.Namespace, OKPMCPPort),
+	}}, mcpServers...)
 
 	// Build the complete config as a map
 	config := map[string]interface{}{
@@ -365,7 +356,6 @@ func buildLCoreConfigYAML(ctx context.Context, h *common_helper.Helper, instance
 			"byok": map[string]interface{}{
 				"stores": []interface{}{},
 			},
-			"okp":       buildOKPConfig(ctx, h, instance),
 			"retrieval": ragConfig,
 		},
 		"mcp_servers": mcpServers,

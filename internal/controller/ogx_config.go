@@ -240,43 +240,8 @@ func buildOGXVectorDB(_ *common_helper.Helper, _ *apiv1beta1.OpenStackLightspeed
 	}
 }
 
-func buildOGXVectorIO(h *common_helper.Helper, instance *apiv1beta1.OpenStackLightspeed, chunkFilterQuery string) []interface{} {
-	providers := buildOGXVectorDB(h, instance)
-	providers = append(providers, buildOKPVectorIOProvider(chunkFilterQuery))
-	return providers
-}
-
-func buildOKPVectorIOProvider(chunkFilterQuery string) map[string]interface{} {
-	chunkFilterQuery = "is_chunk:true AND " + chunkFilterQuery
-
-	return map[string]interface{}{
-		"provider_id":   "okp_solr",
-		"provider_type": "remote::solr_vector_io",
-		"config": map[string]interface{}{
-			"solr_url":            "${env.RH_SERVER_OKP}/solr",
-			"collection_name":     "${env.SOLR_COLLECTION:=portal-rag}",
-			"content_field":       "${env.SOLR_CONTENT_FIELD:=chunk}",
-			"vector_field":        "${env.SOLR_VECTOR_FIELD:=chunk_vector}",
-			"embedding_dimension": "${env.SOLR_EMBEDDING_DIM:=384}",
-			"embedding_model":     "sentence-transformers/solr_embedding",
-			"persistence": map[string]interface{}{
-				"backend":   "kv_default",
-				"namespace": "portal-rag",
-			},
-			"chunk_window_config": map[string]interface{}{
-				"chunk_content_field":           "chunk_field",
-				"chunk_index_field":             "chunk_index",
-				"chunk_filter_query":            chunkFilterQuery,
-				"chunk_parent_id_field":         "parent_id",
-				"chunk_source_path_field":       "source_path",
-				"chunk_online_source_url_field": "online_source_url",
-				"chunk_token_count_field":       "num_tokens",
-				"parent_total_chunks_field":     "total_chunks",
-				"parent_total_tokens_field":     "total_tokens",
-				"chunk_family_fields":           []interface{}{"headings"},
-			},
-		},
-	}
+func buildOGXVectorIO(h *common_helper.Helper, instance *apiv1beta1.OpenStackLightspeed) []interface{} {
+	return buildOGXVectorDB(h, instance)
 }
 
 func buildOGXServerConfig(_ *common_helper.Helper, _ *apiv1beta1.OpenStackLightspeed) map[string]interface{} {
@@ -362,28 +327,11 @@ func buildOGXModels(_ *common_helper.Helper, instance *apiv1beta1.OpenStackLight
 		}
 	}
 
-	models = append(models, map[string]interface{}{
-		"model_id":          "solr_embedding",
-		"model_type":        "embedding",
-		"provider_id":       "sentence-transformers",
-		"provider_model_id": OKPEmbeddingModelMountPath,
-		"metadata": map[string]interface{}{
-			"embedding_dimension": 384,
-		},
-	})
-
 	return models
 }
 
 func buildOGXVectorStores(_ *common_helper.Helper, _ *apiv1beta1.OpenStackLightspeed) []interface{} {
-	return []interface{}{
-		map[string]interface{}{
-			"vector_store_id":     "portal-rag",
-			"provider_id":         "okp_solr",
-			"embedding_dimension": 384,
-			"embedding_model":     "sentence-transformers/solr_embedding",
-		},
-	}
+	return []interface{}{}
 }
 
 func buildOGXToolGroups(_ *common_helper.Helper, _ *apiv1beta1.OpenStackLightspeed) []interface{} {
@@ -407,7 +355,6 @@ func buildOGXYAML(ctx context.Context, h *common_helper.Helper, instance *apiv1b
 	}
 
 	config["external_providers_dir"] = ExternalProvidersDir
-	okpChunkFilterQuery := getOKPChunkFilterQuery(ctx, h, instance)
 
 	// Build providers map - only include providers for enabled APIs
 	config["providers"] = map[string]interface{}{
@@ -415,7 +362,7 @@ func buildOGXYAML(ctx context.Context, h *common_helper.Helper, instance *apiv1b
 		"responses":    buildOGXResponsesProviders(h, instance),
 		"inference":    inferenceProviders,
 		"tool_runtime": buildOGXToolRuntime(h, instance),
-		"vector_io":    buildOGXVectorIO(h, instance, okpChunkFilterQuery),
+		"vector_io":    buildOGXVectorIO(h, instance),
 	}
 
 	// Add top-level fields

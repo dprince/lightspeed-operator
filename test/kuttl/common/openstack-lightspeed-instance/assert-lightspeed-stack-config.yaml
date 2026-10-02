@@ -90,6 +90,9 @@ data:
       default_model: ibm-granite/granite-3.1-8b-instruct
       default_provider: openstack-lightspeed-provider
     mcp_servers:
+    - name: okp
+      provider_id: model-context-protocol
+      url: http://lightspeed-okp-mcp.openstack-lightspeed.svc:8000/mcp
     - authorization_headers:
         OCP_TOKEN: kubernetes
       name: rhoso-ocp-tools

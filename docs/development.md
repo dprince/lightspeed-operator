@@ -44,6 +44,7 @@ graph TB
         Operator --> Plugin[Console Plugin]
         Operator --> DB[(PostgreSQL)]
         Operator --> OKP[OKP]
+        Operator --> OKPMCP[OKP MCP]
         Operator --> Pod
 
         subgraph Pod["lightspeed-stack pod"]
@@ -53,14 +54,14 @@ graph TB
     end
 
     Plugin --> API
-    OGX --> OKP
+    API --> OKPMCP --> OKP
     OGX --> LLM[Your LLM endpoint]
     MCP -.->|read-only, optional| OSP[Your OpenStack / OpenShift APIs]
 ```
 
-**OKP is deployed on every install, not opt-in.** It's the default RAG
-source; the bundled community documentation is available too, but only if
-you explicitly opt in. See [Configuration](configuration.md) for details.
+**OKP and its MCP server are deployed on every install, not opt-in.** The bundled
+community documentation is the default inline RAG source. OKP search is
+available through an MCP tool. See [Configuration](configuration.md) for details.
 
 ## Pod security defaults
 

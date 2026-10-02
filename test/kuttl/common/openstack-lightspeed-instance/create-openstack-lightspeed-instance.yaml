@@ -19,8 +19,6 @@ spec:
     logLevel: WARNING
   dataverseExporter:
     logLevel: DEBUG
-  dev:
-    okpChunkFilterQuery: "product:(*openstack* OR *openshift*)"
   quotas:
     limiters:
       - name: per-user-hourly
