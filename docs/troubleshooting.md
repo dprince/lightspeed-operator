@@ -11,7 +11,7 @@ oc describe -n <namespace> openstacklightspeed
 
 | Condition | Meaning |
 |-----------|---------|
-| `OpenStackLightspeedReady` | Overall readiness. `False`/`Unknown`: engine, database, OKP, or console plugin hasn't converged yet. |
+| `OpenStackLightspeedReady` | Overall readiness. `False`/`Unknown`: engine, database, or OKP hasn't converged yet. |
 | `OpenStackLightspeedMCPServerReady` | Only relevant with `rhoso_mcps` enabled. Tracks the MCP sidecar. |
 
 ## Deployment-specific issues
@@ -37,19 +37,9 @@ Shrinking `spec.database.size` below the existing PVC is rejected (not
 supported in place). Revert the size, or delete/recreate the PVC to
 actually shrink it (loses data).
 
-### Console widget not appearing
-
-- Confirm the `ConsolePlugin` (`lightspeed-console-plugin`) exists and
-  is listed under `spec.plugins` on `oc get
-  console.operator.openshift.io cluster -o yaml`.
-- Newly-activated plugins need a moment — click **refresh** on the
-  console notification.
-- Check the plugin's pod logs for TLS errors — its service-ca certificate
-  can take a few seconds to appear after first deploy.
-
 ### ImagePullBackOff on any operator-managed pod
 
-The console plugin and OKP pods come from `registry.redhat.io`, not
+The OKP pod comes from `registry.redhat.io`, not
 `quay.io`:
 
 ```console

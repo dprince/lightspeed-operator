@@ -5,8 +5,7 @@ feedback/transcripts.
 
 ## Asking questions
 
-Open the Lightspeed widget (bottom-right corner of the OpenShift console)
-once `OpenStackLightspeed` is `Ready`:
+Use Goose CLI once `OpenStackLightspeed` is `Ready` to ask questions such as:
 
 - "How can I spin up a VM using the OpenStack CLI?"
 - "Why would a Nova compute service show as down?"

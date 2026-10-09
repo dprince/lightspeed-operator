@@ -25,7 +25,6 @@ import (
 	"sync/atomic"
 
 	"github.com/go-logr/logr"
-	consolev1 "github.com/openshift/api/console/v1"
 	"github.com/openstack-k8s-operators/lib-common/modules/common/condition"
 	common_helper "github.com/openstack-k8s-operators/lib-common/modules/common/helper"
 	appsv1 "k8s.io/api/apps/v1"
@@ -104,8 +103,6 @@ func (r *OpenStackLightspeedReconciler) GetLogger(ctx context.Context) logr.Logg
 // +kubebuilder:rbac:groups="",resources=secrets,namespace=openstack-lightspeed,verbs=get;list;watch;create;patch;delete;deletecollection
 // +kubebuilder:rbac:groups="",resources=services,namespace=openstack-lightspeed,verbs=get;list;watch;create;patch
 // +kubebuilder:rbac:groups="",resources=serviceaccounts,namespace=openstack-lightspeed,verbs=get;list;watch;create;patch
-// +kubebuilder:rbac:groups=console.openshift.io,resources=consoleplugins,verbs=get;list;watch;create;patch;delete
-// +kubebuilder:rbac:groups=operator.openshift.io,resources=consoles,verbs=get;list;watch;update
 // +kubebuilder:rbac:groups="",resources=persistentvolumeclaims,namespace=openstack-lightspeed,verbs=get;list;watch;create;patch
 
 // Reconcile reads the state of the cluster for a OpenStackLightspeed object and makes changes towards the state defined in the spec.
@@ -240,8 +237,6 @@ func (r *OpenStackLightspeedReconciler) Reconcile(ctx context.Context, req ctrl.
 		{Name: "OKPDeployment", Task: ReconcileOKPDeployment},
 		{Name: "LCoreResources", Task: ReconcileLCoreResources},
 		{Name: "LCoreDeployment", Task: ReconcileLCoreDeployment},
-		{Name: "ConsoleResources", Task: ReconcileConsoleResources},
-		{Name: "ConsoleDeployment", Task: ReconcileConsoleDeployment},
 	}
 
 	if err := ReconcileTasks(ctx, helper, instance, reconcileTasks); err != nil {
@@ -302,7 +297,6 @@ func (r *OpenStackLightspeedReconciler) reconcileDelete(
 
 	// Delete cluster-scoped resources using fail-fast pattern
 	deletionTasks := []ReconcileTask{
-		{Name: "DeleteConsolePlugin", Task: reconcileDeleteConsole},
 		{Name: "DeleteSARClusterRoleBinding", Task: reconcileDeleteClusterRoleBindingByLabels},
 		{Name: "DeleteSARClusterRole", Task: reconcileDeleteClusterRoleByLabels},
 	}
@@ -333,7 +327,6 @@ func (r *OpenStackLightspeedReconciler) reconcileStatus(
 		PostgresDeploymentName,
 		OKPDeploymentName,
 		LCoreDeploymentName,
-		ConsoleUIDeploymentName,
 	}
 	for _, deploymentName := range deployments {
 		deployment, err := getDeployment(ctx, helper, deploymentName, instance.Namespace)
@@ -435,7 +428,6 @@ func (r *OpenStackLightspeedReconciler) SetupWithManager(mgr ctrl.Manager) error
 		Owns(&corev1.Service{}).
 		Owns(&corev1.ConfigMap{}).
 		Owns(&corev1.Secret{}).
-		Owns(&consolev1.ConsolePlugin{}).
 		Watches(
 			&corev1.PersistentVolumeClaim{},
 			handler.EnqueueRequestsFromMapFunc(r.NotifyAllOpenStackLightspeeds),

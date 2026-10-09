@@ -8,10 +8,6 @@ credentials, and deploying `OpenStackLightspeed`. No cluster yet? See
 
 - An OpenShift cluster (4.16+).
 
-  > [!WARNING]
-  > Known issue: the console UI does not currently work on OpenShift 4.20
-  > or newer. Stick to 4.18 until this is resolved.
-
 - An LLM endpoint and API key — any [supported provider](configuration.md#supported-providers)
   works.
 - A free Red Hat Developer account, to pull some images from
@@ -22,7 +18,7 @@ credentials, and deploying `OpenStackLightspeed`. No cluster yet? See
 
 ## Access to registry images
 
-The console plugin and OKP images (both always deployed) come from
+The OKP image is deployed on every install and comes from
 `registry.redhat.io` rather than `quay.io`. This requires a **free**
 account you can create by following these steps:
 
@@ -45,14 +41,14 @@ account you can create by following these steps:
 4. Verify the cluster itself can pull, using its own pull secret:
 
    ```console
-   $ oc run registry-pull-test --image=registry.redhat.io/openshift-lightspeed/lightspeed-console-plugin-pf5-rhel9:1.0.12 --restart=Never
+   $ oc run registry-pull-test --image=registry.redhat.io/offline-knowledge-portal/rhokp-rhel9@sha256:576abe26ace61e70c077ca45bbb7c754ae3e1579b3122a09ea97ca311b3c8c3f --restart=Never
    $ oc get pod registry-pull-test
    ```
 
    Any status other than `ImagePullBackOff`/`ErrImagePull` means it's
    working — clean up with `oc delete pod registry-pull-test`. If you do
    see it, the secret from the previous step didn't propagate — see
-   [Console widget not appearing](troubleshooting.md#console-widget-not-appearing).
+   [Image pull troubleshooting](troubleshooting.md#imagepullbackoff-on-any-operator-managed-pod).
 
 ## Installing the operator
 
@@ -148,7 +144,7 @@ spec:
 ```
 
 This deploys the full stack: the AI engine (lightspeed-stack and
-OGX), PostgreSQL, OKP, and the console plugin.
+OGX), PostgreSQL, and OKP.
 
 > [!NOTE]
 > A single OpenStackLightspeed instance is supported
@@ -167,10 +163,5 @@ Not reaching `Ready`? See [Troubleshooting](troubleshooting.md).
 
 ## Accessing the assistant
 
-```bash
-oc whoami --show-console
-```
-
-Open that URL and use the Lightspeed widget (lower-right corner). First
-time activating the plugin, you may need to click **refresh** on the
-console notification that appears.
+Goose CLI is the primary supported interface for RHOSO 19 Beta.
+See [Usage](usage.md) for available features and model selection.

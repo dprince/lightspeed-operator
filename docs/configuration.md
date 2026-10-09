@@ -104,10 +104,6 @@ spec:
     resources:
       requests: {cpu: "500m", memory: "2Gi"}
       limits: {cpu: "2", memory: "4Gi"}
-  console:
-    resources:
-      requests: {cpu: "50m", memory: "64Mi"}
-      limits: {cpu: "200m", memory: "256Mi"}
 ```
 
 The optional RHOSO MCP sidecar has default resources of `50m` CPU and `300Mi`
@@ -118,7 +114,7 @@ memory requested, with a `500Mi` memory limit. Configure it at
 
 Each managed workload can use a custom image. Set `containerImage` under the
 relevant component: `rag`, `ogx`, `lcore`, `database`, `dataverseExporter`,
-`okp`, or `console`; for the optional MCP sidecar use
+or `okp`; for the optional MCP sidecar use
 `dev.rhosMCP.containerImage`. When omitted, the operator uses its configured
 default image. For example, to configure LCORE container image:
 

@@ -154,17 +154,12 @@ Confirm the conditions are met
 
 ```bash
 oc describe -n openstack openstacklightspeed
-oc describe -n openshift-lightspeed olsconfig
 ```
 
 ### Use
-Now you can go to the [OpenShift web console](https://console-openshift-console.apps-crc.testing) using the `kubeadmin` username and `12345678` password and use the OpenShift Lightspeed console widget that should appear at the lower right corner.
-You may need to click on `refresh` console link that appears on a message.
 
-If you are running CRC on a different machine you can use `sshuttle` to connect to the remote system:
-- Edit your local system's `/etc/hosts` (where you use the browser) and add this line verbatim (don't change the IP): `192.168.130.11 api.crc.testing canary-openshift-ingress-canary.apps-crc.testing console-openshift-console.apps-crc.testing default-route-openshift-image-registry.apps-crc.testing downloads-openshift-console.apps-crc.testing oauth-openshift.apps-crc.testing`
-- In your local system run `sshuttle -r $remote_username@$remote_server 192.168.130.0/24`.
-- Now the console should be accessible in your browser.
+Goose CLI is the primary supported interface for RHOSO 19 Beta.
+See [Usage](docs/usage.md) for available features.
 
 ## Development
 

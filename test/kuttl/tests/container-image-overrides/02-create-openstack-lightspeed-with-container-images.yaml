@@ -27,8 +27,6 @@ spec:
   dataverseExporter:
     logLevel: DEBUG
     containerImage: quay.io/lightspeed-core/lightspeed-to-dataverse-exporter:latest
-  console:
-    containerImage: registry.redhat.io/openshift-lightspeed/lightspeed-console-plugin-pf5-rhel9:1.0.12
   database:
     containerImage: quay.io/sclorg/postgresql-16-c10s:latest
   okp:

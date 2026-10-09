@@ -53,17 +53,6 @@ rules:
   - list
   - watch
 - apiGroups:
-  - console.openshift.io
-  resources:
-  - consoleplugins
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - watch
-- apiGroups:
   - core.openstack.org
   resources:
   - openstackcontrolplanes
@@ -110,15 +99,6 @@ rules:
   - openstacklightspeeds/status
   verbs:
   - patch
-- apiGroups:
-  - operator.openshift.io
-  resources:
-  - consoles
-  verbs:
-  - get
-  - list
-  - update
-  - watch
 - apiGroups:
   - rbac.authorization.k8s.io
   resources:

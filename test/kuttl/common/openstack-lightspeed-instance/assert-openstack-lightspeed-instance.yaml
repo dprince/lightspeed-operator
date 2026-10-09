@@ -405,78 +405,6 @@ metadata:
   name: vector-db-scripts
   namespace: openstack-lightspeed
 
-# Console Plugin resources
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: lightspeed-console-plugin
-  namespace: openstack-lightspeed
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: lightspeed-console-plugin
-  namespace: openstack-lightspeed
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: lightspeed-console-plugin
-  namespace: openstack-lightspeed
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: lightspeed-console-plugin
-  namespace: openstack-lightspeed
-spec:
-  template:
-    spec:
-      securityContext:
-        runAsNonRoot: true
-        seccompProfile:
-          type: RuntimeDefault
-      initContainers:
-        - name: rewrite-locales
-          securityContext:
-            allowPrivilegeEscalation: false
-            runAsNonRoot: true
-            readOnlyRootFilesystem: true
-            capabilities:
-              drop: ["ALL"]
-          resources:
-            requests:
-              cpu: 50m
-              memory: 64Mi
-            limits:
-              cpu: 200m
-              memory: 256Mi
-          volumeMounts:
-            - name: locales-rewrite
-              mountPath: /locales-rewrite
-      containers:
-        - name: lightspeed-console-plugin
-          resources:
-            requests:
-              cpu: 50m
-              memory: 64Mi
-            limits:
-              cpu: 200m
-              memory: 256Mi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: lightspeed-console-plugin
-  namespace: openstack-lightspeed
----
-apiVersion: console.openshift.io/v1
-kind: ConsolePlugin
-metadata:
-  name: lightspeed-console-plugin
-
-# OpenStackLightspeed CR status
 ---
 apiVersion: lightspeed.openstack.org/v1beta1
 kind: OpenStackLightspeed
@@ -495,14 +423,6 @@ spec:
       llmDeploymentName: test-deployment-name
       llmAPIVersion: v1
   tlsCACertBundle: openstack-lightspeed-cert
-  console:
-    resources:
-      limits:
-        cpu: 200m
-        memory: 256Mi
-      requests:
-        cpu: 50m
-        memory: 64Mi
   database:
     logLevel: INFO
     resources:

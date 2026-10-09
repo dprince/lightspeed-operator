@@ -56,10 +56,8 @@ Self-hosted endpoint with a self-signed certificate? See
 reference. For selecting non-default models in API requests, see
 [Multi-model request routing](usage.md#multi-model-request-routing).
 
-## Open the console
+## Use the assistant
 
-```bash
-oc whoami --show-console
-```
-
-Open that URL and use the Lightspeed widget (lower-right corner).
+Goose CLI is the primary supported interface for RHOSO 19 Beta. Wait for
+`OpenStackLightspeed` to become `Ready` before using the assistant.
+See [Usage](usage.md) for available features.

@@ -45,8 +45,6 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	consolev1 "github.com/openshift/api/console/v1"
-	openshiftv1 "github.com/openshift/api/operator/v1"
 	operatorsv1alpha1 "github.com/operator-framework/api/pkg/operators/v1alpha1"
 
 	lightspeedv1beta1 "github.com/openstack-k8s-operators/lightspeed-operator/api/v1beta1"
@@ -67,10 +65,6 @@ func init() {
 	utilruntime.Must(operatorsv1alpha1.AddToScheme(scheme))
 
 	utilruntime.Must(lightspeedv1beta1.AddToScheme(scheme))
-
-	utilruntime.Must(consolev1.AddToScheme(scheme))
-
-	utilruntime.Must(openshiftv1.AddToScheme(scheme))
 
 	utilruntime.Must(apiextensionsv1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme

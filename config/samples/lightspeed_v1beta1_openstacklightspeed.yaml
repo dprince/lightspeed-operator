@@ -91,15 +91,6 @@ spec:
   #       cpu: "2"
   #       memory: "4Gi"
   #   containerImage: registry.redhat.io/offline-knowledge-portal/rhokp-rhel9:latest
-  # console:
-  #   resources:
-  #     requests:
-  #       cpu: "50m"
-  #       memory: "256Mi"
-  #     limits:
-  #       cpu: "1"
-  #       memory: "2Gi"
-  #   containerImage: registry.redhat.io/openshift-lightspeed/lightspeed-console-plugin-rhel9:1.0.12
   # Uncomment to enable quota enforcement (opt-in; omit or leave limiters empty to disable):
   # quotas:
   #   limiters:

@@ -91,15 +91,6 @@ func (instance *OpenStackLightspeed) OKPContainerImage() string {
 	return resolveContainerImage(manifestImage, OpenStackLightspeedDefaultValues.OKPImageURL)
 }
 
-// ConsoleContainerImage returns the console plugin container image for this instance.
-// When spec.console.containerImage is unset, ocpDefault is used (typically PF5/PF6 selection).
-func (instance *OpenStackLightspeed) ConsoleContainerImage(ocpDefault string) string {
-	if instance.Spec.Console != nil && instance.Spec.Console.ContainerImage != "" {
-		return instance.Spec.Console.ContainerImage
-	}
-	return ocpDefault
-}
-
 // MCPContainerImage returns the MCP container image for this instance.
 func (instance *OpenStackLightspeed) MCPContainerImage() string {
 	manifestImage := ""

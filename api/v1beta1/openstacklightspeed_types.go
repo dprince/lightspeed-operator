@@ -41,12 +41,6 @@ const (
 	// PostgresContainerImage is the fall-back container image for PostgreSQL
 	PostgresContainerImage = "quay.io/sclorg/postgresql-16-c10s:latest"
 
-	// ConsoleContainerImage is the fall-back container image for the Console Plugin (PatternFly 6, OCP >= 4.19)
-	ConsoleContainerImage = "registry.redhat.io/openshift-lightspeed/lightspeed-console-plugin-rhel9:1.0.12"
-
-	// ConsoleContainerImagePF5 is the fall-back console image for PatternFly 5 (OCP < 4.19)
-	ConsoleContainerImagePF5 = "registry.redhat.io/openshift-lightspeed/lightspeed-console-plugin-pf5-rhel9:1.0.12"
-
 	// OKPContainerImage is the fall-back container image for OKP (Offline Knowledge Portal)
 	OKPContainerImage = "registry.redhat.io/offline-knowledge-portal/rhokp-rhel9:latest"
 
@@ -160,19 +154,6 @@ type DatabaseSpec struct {
 
 	// +kubebuilder:validation:Optional
 	// ContainerImage overrides the PostgreSQL container image. When unset, the operator default is used.
-	ContainerImage string `json:"containerImage,omitempty"`
-}
-
-// ConsoleSpec defines configuration for the lightspeed console plugin.
-type ConsoleSpec struct {
-	// +kubebuilder:validation:Optional
-	// +kubebuilder:default:={requests: {cpu: "50m", memory: "64Mi"}, limits: {cpu: "200m", memory: "256Mi"}}
-	// Resources sets compute resources for the lightspeed-console-plugin
-	// container and its init container.
-	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
-
-	// +kubebuilder:validation:Optional
-	// ContainerImage overrides the console plugin container image. When unset, the operator default is used.
 	ContainerImage string `json:"containerImage,omitempty"`
 }
 
@@ -296,11 +277,6 @@ type OpenStackLightspeedSpec struct {
 	// Dev contains developer/experimental configuration.
 	// This section is not part of the stable API and may change at any time without backward compatibility.
 	Dev runtime.RawExtension `json:"dev,omitempty"`
-
-	// +kubebuilder:validation:Optional
-	// +kubebuilder:default:={}
-	// Console configures the lightspeed console plugin.
-	Console *ConsoleSpec `json:"console,omitempty"`
 }
 
 // DataverseExporterFeedback defines feedback collection configuration for the dataverse exporter.
@@ -508,8 +484,6 @@ type OpenStackLightspeedDefaults struct {
 	OGXImageURL          string
 	ExporterImageURL     string
 	PostgresImageURL     string
-	ConsoleImageURL      string
-	ConsoleImagePF5URL   string
 	OKPImageURL          string
 	MCPServerImageURL    string
 	MaxTokensForResponse int
@@ -534,10 +508,6 @@ func SetupDefaults() {
 			"RELATED_IMAGE_EXPORTER_IMAGE_URL_DEFAULT", ExporterContainerImage),
 		PostgresImageURL: util.GetEnvVar(
 			"RELATED_IMAGE_POSTGRES_IMAGE_URL_DEFAULT", PostgresContainerImage),
-		ConsoleImageURL: util.GetEnvVar(
-			"RELATED_IMAGE_CONSOLE_IMAGE_URL_DEFAULT", ConsoleContainerImage),
-		ConsoleImagePF5URL: util.GetEnvVar(
-			"RELATED_IMAGE_CONSOLE_PF5_IMAGE_URL_DEFAULT", ConsoleContainerImagePF5),
 		OKPImageURL: util.GetEnvVar(
 			"RELATED_IMAGE_OKP_IMAGE_URL_DEFAULT", OKPContainerImage),
 		MCPServerImageURL: util.GetEnvVar(

@@ -1,9 +1,9 @@
 # OpenStack Lightspeed Operator documentation
 
 OpenStack Lightspeed is an AI-powered assistant, tailored for Red Hat
-OpenStack Services on OpenShift (RHOSO), that lives inside the OpenShift
-web console and answers questions in plain English — grounded in real
-documentation, not guesses.
+OpenStack Services on OpenShift (RHOSO), that answers questions in plain
+English using product documentation. Goose CLI is the primary supported
+interface for RHOSO 19 Beta.
 
 Ask it something like *"How do I create a VM using the OpenStack CLI?"* or
 *"Why would a Nova compute service show as down?"* — see [Usage](usage.md) for

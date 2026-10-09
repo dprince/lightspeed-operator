@@ -24,6 +24,7 @@ import (
 
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
+	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -36,6 +37,59 @@ import (
 
 	apiv1beta1 "github.com/openstack-k8s-operators/lightspeed-operator/api/v1beta1"
 )
+
+func TestReconcileStatusCoreDeployments(t *testing.T) {
+	for _, missing := range []string{"", PostgresDeploymentName, OKPDeploymentName, LCoreDeploymentName} {
+		name := missing
+		if name == "" {
+			name = "all deployments ready"
+		}
+		t.Run(name, func(t *testing.T) {
+			h := newTestHelper(t)
+			if err := appsv1.AddToScheme(h.GetScheme()); err != nil {
+				t.Fatal(err)
+			}
+			ctx := context.Background()
+			for _, deploymentName := range []string{PostgresDeploymentName, OKPDeploymentName, LCoreDeploymentName} {
+				if deploymentName == missing {
+					continue
+				}
+				deployment := &appsv1.Deployment{
+					ObjectMeta: metav1.ObjectMeta{Name: deploymentName, Namespace: "test-ns"},
+					Spec:       appsv1.DeploymentSpec{Replicas: toPtr(int32(1))},
+				}
+				if err := h.GetClient().Create(ctx, deployment); err != nil {
+					t.Fatal(err)
+				}
+				deployment.Status = appsv1.DeploymentStatus{
+					ObservedGeneration: deployment.Generation,
+					Replicas:           1, UpdatedReplicas: 1, AvailableReplicas: 1,
+				}
+				if err := h.GetClient().Status().Update(ctx, deployment); err != nil {
+					t.Fatal(err)
+				}
+			}
+			instance := &apiv1beta1.OpenStackLightspeed{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-instance", Namespace: "test-ns"},
+			}
+			r := &OpenStackLightspeedReconciler{Client: h.GetClient()}
+			result, err := r.reconcileStatus(ctx, h, instance)
+			if err != nil {
+				t.Fatal(err)
+			}
+			wantReady := missing == ""
+			if got := instance.Status.Conditions.IsTrue(apiv1beta1.OpenStackLightspeedReadyCondition); got != wantReady {
+				t.Fatalf("ready = %t, want %t", got, wantReady)
+			}
+			if wantReady && !result.IsZero() {
+				t.Fatalf("ready deployment should not requeue: %v", result)
+			}
+			if !wantReady && result.RequeueAfter != ResourceCreationTimeout {
+				t.Fatalf("missing deployment should requeue: %v", result)
+			}
+		})
+	}
+}
 
 var _ = ginkgo.Describe("OpenStackLightspeed Controller", func() {
 	ginkgo.Context("When reconciling a resource", func() {

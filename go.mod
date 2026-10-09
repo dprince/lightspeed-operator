@@ -7,7 +7,6 @@ require (
 	github.com/go-logr/logr v1.4.4
 	github.com/onsi/ginkgo/v2 v2.33.0
 	github.com/onsi/gomega v1.44.0
-	github.com/openshift/api v3.9.0+incompatible // from lib-common
 	github.com/openstack-k8s-operators/lib-common/modules/common v0.6.1-0.20260911152322-92cbe8cb7d0a
 	github.com/openstack-k8s-operators/lib-common/modules/openstack v0.6.1-0.20260911152322-92cbe8cb7d0a
 	github.com/operator-framework/api v0.33.0

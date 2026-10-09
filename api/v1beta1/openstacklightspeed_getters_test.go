@@ -71,7 +71,6 @@ func TestOpenStackLightspeedContainerImages(t *testing.T) {
 				LCore:             &LCoreSpec{ContainerImage: "custom/lcore:2"},
 				DataverseExporter: &DataverseExporter{ContainerImage: "custom/exporter:2"},
 			},
-			Console:  &ConsoleSpec{ContainerImage: "custom/console:2"},
 			Database: &DatabaseSpec{ContainerImage: "custom/postgres:2"},
 			OKP:      &OKPSpec{ContainerImage: "custom/okp:2"},
 		},
@@ -94,9 +93,6 @@ func TestOpenStackLightspeedContainerImages(t *testing.T) {
 	}
 	if got := instance.OKPContainerImage(); got != "custom/okp:2" {
 		t.Errorf("OKPContainerImage() = %q, want %q", got, "custom/okp:2")
-	}
-	if got := instance.ConsoleContainerImage("default/console-pf5:1"); got != "custom/console:2" {
-		t.Errorf("ConsoleContainerImage() = %q, want %q", got, "custom/console:2")
 	}
 }
 
@@ -132,9 +128,6 @@ func TestOpenStackLightspeedContainerImagesUseDefaults(t *testing.T) {
 	if got := instance.OKPContainerImage(); got != "default/okp:1" {
 		t.Errorf("OKPContainerImage() = %q, want %q", got, "default/okp:1")
 	}
-	if got := instance.ConsoleContainerImage("default/console-pf5:1"); got != "default/console-pf5:1" {
-		t.Errorf("ConsoleContainerImage() = %q, want %q", got, "default/console-pf5:1")
-	}
 }
 
 func TestSetupDefaults_OGXImageURLFromEnv(t *testing.T) {
@@ -143,8 +136,6 @@ func TestSetupDefaults_OGXImageURLFromEnv(t *testing.T) {
 	t.Setenv("RELATED_IMAGE_OPENSTACK_LIGHTSPEED_IMAGE_URL_DEFAULT", "env/rag:1")
 	t.Setenv("RELATED_IMAGE_EXPORTER_IMAGE_URL_DEFAULT", "env/exporter:1")
 	t.Setenv("RELATED_IMAGE_POSTGRES_IMAGE_URL_DEFAULT", "env/postgres:1")
-	t.Setenv("RELATED_IMAGE_CONSOLE_IMAGE_URL_DEFAULT", "env/console:1")
-	t.Setenv("RELATED_IMAGE_CONSOLE_PF5_IMAGE_URL_DEFAULT", "env/console-pf5:1")
 	t.Setenv("RELATED_IMAGE_OKP_IMAGE_URL_DEFAULT", "env/okp:1")
 	t.Setenv("RELATED_IMAGE_MCP_SERVER_IMAGE_URL_DEFAULT", "env/mcp:1")
 

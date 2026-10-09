@@ -63,36 +63,12 @@ status:
   readyReplicas: 1
   availableReplicas: 1
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: lightspeed-console-plugin
-  namespace: openstack-lightspeed
-spec:
-  template:
-    spec:
-      initContainers:
-        - name: rewrite-locales
-          image: registry.redhat.io/openshift-lightspeed/lightspeed-console-plugin-pf5-rhel9:1.0.12
-      containers:
-        - name: lightspeed-console-plugin
-          image: registry.redhat.io/openshift-lightspeed/lightspeed-console-plugin-pf5-rhel9:1.0.12
----
 apiVersion: lightspeed.openstack.org/v1beta1
 kind: OpenStackLightspeed
 metadata:
   name: openstack-lightspeed
   namespace: openstack-lightspeed
 spec:
-  console:
-    containerImage: registry.redhat.io/openshift-lightspeed/lightspeed-console-plugin-pf5-rhel9:1.0.12
-    resources:
-      limits:
-        cpu: 200m
-        memory: 256Mi
-      requests:
-        cpu: 50m
-        memory: 64Mi
   database:
     containerImage: quay.io/sclorg/postgresql-16-c10s:latest
     resources:
