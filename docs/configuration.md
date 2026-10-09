@@ -106,16 +106,11 @@ spec:
       limits: {cpu: "2", memory: "4Gi"}
 ```
 
-The optional RHOSO MCP sidecar has default resources of `50m` CPU and `300Mi`
-memory requested, with a `500Mi` memory limit. Configure it at
-`dev.rhosMCP.resources` when the `rhoso_mcps` feature flag is enabled.
-
 ## Container images
 
 Each managed workload can use a custom image. Set `containerImage` under the
 relevant component: `rag`, `ogx`, `lcore`, `database`, `dataverseExporter`,
-or `okp`; for the optional MCP sidecar use
-`dev.rhosMCP.containerImage`. When omitted, the operator uses its configured
+or `okp`. When omitted, the operator uses its configured
 default image. For example, to configure LCORE container image:
 
 ```yaml
@@ -212,39 +207,14 @@ usage for auditing. It does not affect enforcement and defaults to `false`.
 ```yaml
 spec:
   dev:
-    featureFlags:
-      - rhoso_mcps   # enables the read-only MCP introspection sidecar
     okpChunkFilterQuery: "product:(*openstack* OR *openshift*)"  # example override
     okpRagOnly: false  # include bundled community docs too, not just OKP
     resourcePollInterval: 60  # requeue/poll interval in seconds (default: 60)
-    rhosMCP:
-      config: |
-        debug: true
-        workers: 4
-      resources:
-        requests:
-          cpu: "50m"
-          memory: "300Mi"
-        limits:
-          memory: "500Mi"
-      containerImage: quay.io/openstack-lightspeed/lightspeed-mcps:latest
 ```
 
-- `okpChunkFilterQuery` and `okpRagOnly` take effect immediately, with no
-  `featureFlags` entry needed — they're independent of `rhoso_mcps`. If
-  unset, `okpChunkFilterQuery` auto-detects your OpenShift/RHOSO versions
-  instead of using the literal example above.
-- `rhoso_mcps` — the one flag that does need to be set. Deploys the MCP
-  introspection sidecar, which is read-only **by default**. See
-  [Usage](usage.md).
-- `rhosMCP` configures the MCP sidecar. Its `config` value is deep-merged
-  on top of the operator's defaults and can override anything they set,
-  including the `allow_write` flags that keep introspection read-only. Only
-  set it if you understand exactly what you're overriding. `resources` and
-  `containerImage` respectively configure the sidecar resource requirements
-  and image.
-- `resourcePollInterval` — requeue/poll interval in seconds when a
-  dynamically watched CRD is missing or when `rhoso_mcps` is enabled
-  (the cache-based watch only covers the operator namespace, so polling
-  detects cross-namespace changes such as OpenStackControlPlane
-  readiness and CA rotations). Defaults to `60`.
+- `okpChunkFilterQuery` overrides the version-aware knowledge-base filter.
+  If unset, the operator detects your OpenShift/RHOSO versions.
+- `okpRagOnly` controls whether the bundled community documentation is used
+  alongside OKP. Defaults to `true`.
+- `resourcePollInterval` sets the requeue interval in seconds while waiting
+  for deployments or other resources to become ready. Defaults to `60`.

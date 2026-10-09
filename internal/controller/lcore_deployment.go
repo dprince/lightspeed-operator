@@ -229,56 +229,6 @@ func buildLCorePodTemplateSpec(ctx context.Context, h *common_helper.Helper, ins
 		containers = append(containers, exporterContainer)
 	}
 
-	// MCP sidecar (only when rhoso_mcps feature flag is enabled)
-	rhosoMCPEnabled, err := isRHOSOMCPEnabled(instance)
-	if err != nil {
-		return corev1.PodTemplateSpec{}, fmt.Errorf("failed to parse dev config: %w", err)
-	}
-	if rhosoMCPEnabled {
-		mcpMounts := []corev1.VolumeMount{}
-		addMCPVolumesAndMounts(&volumes, &mcpMounts)
-
-		mcpContainer := corev1.Container{
-			Name:         "rhoso-mcps",
-			Image:        instance.MCPContainerImage(),
-			VolumeMounts: mcpMounts,
-			Resources:    getRhosMCPResources(instance),
-			StartupProbe: &corev1.Probe{
-				ProbeHandler: corev1.ProbeHandler{
-					HTTPGet: &corev1.HTTPGetAction{
-						Path: MCPServerHealthPath,
-						Port: intstr.FromInt32(MCPServerPort),
-					},
-				},
-				PeriodSeconds:    MCPServerProbePeriodSeconds,
-				TimeoutSeconds:   MCPServerProbeTimeoutSeconds,
-				FailureThreshold: MCPServerStartupProbeFailureThreshold,
-			},
-			LivenessProbe: &corev1.Probe{
-				ProbeHandler: corev1.ProbeHandler{
-					HTTPGet: &corev1.HTTPGetAction{
-						Path: MCPServerHealthPath,
-						Port: intstr.FromInt32(MCPServerPort),
-					},
-				},
-				PeriodSeconds:    MCPServerProbePeriodSeconds,
-				TimeoutSeconds:   MCPServerProbeTimeoutSeconds,
-				FailureThreshold: MCPServerProbeFailureThreshold,
-			},
-			ImagePullPolicy: corev1.PullIfNotPresent,
-			// NOTE: readOnlyRootFilesystem is intentionally not set for MCP.
-			// This sidecar is a dev feature and may require mutable runtime paths.
-			SecurityContext: &corev1.SecurityContext{
-				RunAsNonRoot:             toPtr(true),
-				AllowPrivilegeEscalation: toPtr(false),
-				Capabilities: &corev1.Capabilities{
-					Drop: []corev1.Capability{"ALL"},
-				},
-			},
-		}
-		containers = append(containers, mcpContainer)
-	}
-
 	// Build configmap resource version annotations for change detection
 	annotations, err := buildConfigMapAnnotations(ctx, h)
 	if err != nil {
@@ -519,60 +469,6 @@ func addDataCollectorVolumes(volumes *[]corev1.Volume, volumeDefaultMode int32) 
 			},
 		},
 	})
-}
-
-// addMCPVolumesAndMounts adds MCP sidecar volumes and mounts.
-// OpenStack-specific volumes are always mounted with Optional so the pod can
-// start before those resources exist (they are created when OSCP becomes ready).
-func addMCPVolumesAndMounts(volumes *[]corev1.Volume, mounts *[]corev1.VolumeMount) {
-	*volumes = append(*volumes,
-		corev1.Volume{
-			Name: SecureYAMLSecretName,
-			VolumeSource: corev1.VolumeSource{
-				Secret: &corev1.SecretVolumeSource{
-					SecretName: SecureYAMLSecretName,
-					Items:      []corev1.KeyToPath{{Key: "secure.yaml", Path: "secure.yaml"}},
-					Optional:   toPtr(true),
-				},
-			},
-		},
-		corev1.Volume{
-			Name: CloudsYAMLConfigMapName,
-			VolumeSource: corev1.VolumeSource{
-				ConfigMap: &corev1.ConfigMapVolumeSource{
-					LocalObjectReference: corev1.LocalObjectReference{Name: CloudsYAMLConfigMapName},
-					Items:                []corev1.KeyToPath{{Key: "clouds.yaml", Path: "clouds.yaml"}},
-					Optional:             toPtr(true),
-				},
-			},
-		},
-		corev1.Volume{
-			Name: CombinedCABundleSecretName,
-			VolumeSource: corev1.VolumeSource{
-				Secret: &corev1.SecretVolumeSource{
-					SecretName: CombinedCABundleSecretName,
-					Items:      []corev1.KeyToPath{{Key: "tls-ca-bundle.pem", Path: "tls-ca-bundle.pem"}},
-					Optional:   toPtr(true),
-				},
-			},
-		},
-		corev1.Volume{
-			Name: MCPConfigYAMLConfigMapName,
-			VolumeSource: corev1.VolumeSource{
-				ConfigMap: &corev1.ConfigMapVolumeSource{
-					LocalObjectReference: corev1.LocalObjectReference{Name: MCPConfigYAMLConfigMapName},
-					Items:                []corev1.KeyToPath{{Key: "config.yaml", Path: "config.yaml"}},
-				},
-			},
-		},
-	)
-
-	*mounts = append(*mounts,
-		corev1.VolumeMount{Name: SecureYAMLSecretName, MountPath: "/app/secure.yaml", SubPath: "secure.yaml"},
-		corev1.VolumeMount{Name: CloudsYAMLConfigMapName, MountPath: "/app/clouds.yaml", SubPath: "clouds.yaml"},
-		corev1.VolumeMount{Name: CombinedCABundleSecretName, MountPath: "/app/tls-ca-bundle.pem", SubPath: "tls-ca-bundle.pem", ReadOnly: true},
-		corev1.VolumeMount{Name: MCPConfigYAMLConfigMapName, MountPath: "/app/config.yaml", SubPath: "config.yaml"},
-	)
 }
 
 // addCABundleVolumesAndMounts adds the CA bundle volume and mount.
@@ -927,42 +823,6 @@ func buildConfigMapAnnotations(ctx context.Context, h *common_helper.Helper) (ma
 		}
 	} else {
 		annotations[PostgresSecretResourceVersionAnnotation] = postgresSecretVersion
-	}
-
-	mcpVersion, err := getConfigMapContentHash(ctx, h, MCPConfigYAMLConfigMapName, h.GetBeforeObject().GetNamespace())
-	if err != nil {
-		if !errors.IsNotFound(err) {
-			return nil, fmt.Errorf("failed to get MCP config configmap content hash: %w", err)
-		}
-	} else {
-		annotations[MCPConfigMapResourceVersionAnnotation] = mcpVersion
-	}
-
-	cloudsVersion, err := getConfigMapContentHash(ctx, h, CloudsYAMLConfigMapName, h.GetBeforeObject().GetNamespace())
-	if err != nil {
-		if !errors.IsNotFound(err) {
-			return nil, fmt.Errorf("failed to get clouds.yaml configmap content hash: %w", err)
-		}
-	} else {
-		annotations[CloudsYAMLConfigMapVersionAnnotation] = cloudsVersion
-	}
-
-	secureVersion, err := getSecretContentHash(ctx, h, SecureYAMLSecretName, h.GetBeforeObject().GetNamespace())
-	if err != nil {
-		if !errors.IsNotFound(err) {
-			return nil, fmt.Errorf("failed to get secure.yaml secret content hash: %w", err)
-		}
-	} else {
-		annotations[SecureYAMLSecretVersionAnnotation] = secureVersion
-	}
-
-	caBundleSecretVersion, err := getSecretContentHash(ctx, h, CombinedCABundleSecretName, h.GetBeforeObject().GetNamespace())
-	if err != nil {
-		if !errors.IsNotFound(err) {
-			return nil, fmt.Errorf("failed to get CA bundle secret content hash: %w", err)
-		}
-	} else {
-		annotations[CombinedCABundleSecretVersionAnnotation] = caBundleSecretVersion
 	}
 
 	return annotations, nil

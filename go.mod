@@ -8,10 +8,9 @@ require (
 	github.com/onsi/ginkgo/v2 v2.33.0
 	github.com/onsi/gomega v1.44.0
 	github.com/openstack-k8s-operators/lib-common/modules/common v0.6.1-0.20260911152322-92cbe8cb7d0a
-	github.com/openstack-k8s-operators/lib-common/modules/openstack v0.6.1-0.20260911152322-92cbe8cb7d0a
 	github.com/operator-framework/api v0.33.0
 	k8s.io/api v0.33.13
-	k8s.io/apiextensions-apiserver v0.33.13
+	k8s.io/apiextensions-apiserver v0.33.13 // indirect
 	k8s.io/apimachinery v0.33.13
 	k8s.io/client-go v0.33.13
 	sigs.k8s.io/controller-runtime v0.21.0
@@ -22,12 +21,8 @@ require (
 // must be consistent within modules and service operators
 replace github.com/openshift/api => github.com/openshift/api v0.0.0-20260710141509-36dec0bfafe4
 
-// Required to compile against telemetry-operator/api, see
-// https://github.com/openstack-k8s-operators/openstack-operator/blob/main/go.mod
-// and https://github.com/openstack-k8s-operators/telemetry-operator/blob/main/go.mod
+// Keep kube-openapi compatible with Kubernetes 0.33's structured-merge-diff/v4 types.
 replace k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20250627150254-e9823e99808e
-
-require github.com/openstack-k8s-operators/telemetry-operator/api v0.6.1-0.20260922164233-1b4a134b90d7
 
 require (
 	cel.dev/expr v0.25.2 // indirect
@@ -38,6 +33,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/emicklei/go-restful/v3 v3.12.2 // indirect
+	github.com/evanphx/json-patch v5.9.11+incompatible // indirect
 	github.com/evanphx/json-patch/v5 v5.9.11 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
@@ -55,7 +51,6 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/pprof v0.0.0-20260402051712-545e8a4df936 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/gophercloud/gophercloud/v2 v2.14.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.29.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
@@ -64,14 +59,11 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.3-0.20250322232337-35a7c28c31ee // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/openstack-k8s-operators/infra-operator/apis v0.6.1-0.20260917133014-aa9523bc1a12 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.22.0 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.65.0 // indirect
 	github.com/prometheus/procfs v0.16.1 // indirect
-	github.com/rhobs/obo-prometheus-operator/pkg/apis/monitoring v0.77.1-rhobs1 // indirect
-	github.com/rhobs/observability-operator v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/cobra v1.10.2 // indirect
 	github.com/spf13/pflag v1.0.9 // indirect

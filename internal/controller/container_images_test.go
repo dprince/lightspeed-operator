@@ -17,6 +17,7 @@ limitations under the License.
 package controller
 
 import (
+	"context"
 	"testing"
 
 	apiv1beta1 "github.com/openstack-k8s-operators/lightspeed-operator/api/v1beta1"
@@ -116,5 +117,43 @@ func TestBuildOKPPodTemplateSpec_UsesContainerImageOverride(t *testing.T) {
 	}
 	if got := podTemplate.Spec.Containers[0].Image; got != testOKPImage {
 		t.Errorf("okp image = %q, want %q", got, testOKPImage)
+	}
+}
+
+func TestBuildLCorePodTemplateSpec_CoreContainers(t *testing.T) {
+	setContainerImageTestDefaults(t)
+	for _, devConfig := range []string{"", `{"featureFlags":["rhoso_mcps"],"rhosMCP":{"containerImage":"example.com/mcp:legacy"}}`} {
+		name := "default configuration"
+		if devConfig != "" {
+			name = "legacy MCP configuration"
+		}
+		t.Run(name, func(t *testing.T) {
+			instance := makeContainerImageTestInstance()
+			instance.Spec.Dev.Raw = []byte(devConfig)
+			h := newTestHelper(t)
+
+			podTemplate, err := buildLCorePodTemplateSpec(context.Background(), h, instance)
+			if err != nil {
+				t.Fatal(err)
+			}
+			containers := podTemplate.Spec.Containers
+			if len(containers) != 2 {
+				t.Fatalf("expected only OGX and Lightspeed API containers when data collection is disabled, got %d", len(containers))
+			}
+			for _, container := range containers {
+				var wantImage string
+				switch container.Name {
+				case "ogx":
+					wantImage = testOGXImage
+				case "lightspeed-service-api":
+					wantImage = testLightspeedImage
+				default:
+					t.Fatalf("unexpected container %q", container.Name)
+				}
+				if container.Image != wantImage {
+					t.Errorf("%s image = %q, want %q", container.Name, container.Image, wantImage)
+				}
+			}
+		})
 	}
 }

@@ -1,7 +1,7 @@
 # Available Features
 
-Day-to-day use: asking questions, optional cluster introspection, and
-feedback/transcripts.
+Goose CLI is the primary supported interface for RHOSO 19 Beta.
+Available features include documentation questions, quotas, and data collection.
 
 ## Asking questions
 
@@ -43,23 +43,6 @@ Example (explicit model selection):
 If `provider` and `model` are omitted, Lightspeed uses
 `spec.defaultModel` (and its corresponding provider
 `provider-<defaultModel>`).
-
-## Cluster introspection (optional)
-
-Enabling the `rhoso_mcps` dev flag ([Configuration](configuration.md)) gives the
-assistant read-only tools to inspect your actual OpenStack/OpenShift
-resources instead of relying on docs alone.
-
-- **Strictly read-only by default** — only list/get/describe-style
-  `openstack` and `oc` commands are exposed as tools; nothing that
-  creates, updates, or deletes resources is available to the assistant
-  out of the box.
-- Introspection stays local to your cluster; only the query and retrieved
-  context go to your LLM provider.
-- Credentials are automatic — the operator provisions a scoped Keystone
-  Application Credential when an `OpenStackControlPlane` is detected.
-
-Disabled by default; still evolving.
 
 ## Quota enforcement (optional)
 

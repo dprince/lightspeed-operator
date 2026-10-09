@@ -19,7 +19,6 @@ package controller
 import (
 	"context"
 	"strings"
-	"sync/atomic"
 	"testing"
 
 	"github.com/onsi/ginkgo/v2"
@@ -143,10 +142,6 @@ var _ = ginkgo.Describe("OpenStackLightspeed Controller", func() {
 			controllerReconciler := &OpenStackLightspeedReconciler{
 				Client: k8sClient,
 				Scheme: k8sClient.Scheme(),
-				DynamicWatchCRD: DynamicWatchCRD{
-					OpenStackControlPlaneGVK():         new(atomic.Bool),
-					KeystoneApplicationCredentialGVK(): new(atomic.Bool),
-				},
 			}
 
 			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{

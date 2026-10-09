@@ -86,8 +86,6 @@ spec:
             value: quay.io/sclorg/postgresql-16-c10s:latest
           - name: RELATED_IMAGE_OKP_IMAGE_URL_DEFAULT
             value: registry.redhat.io/offline-knowledge-portal/rhokp-rhel9:latest
-          - name: RELATED_IMAGE_MCP_SERVER_IMAGE_URL_DEFAULT
-            value: quay.io/openstack-lightspeed/lightspeed-mcps:latest
         securityContext:
           allowPrivilegeEscalation: false
           runAsNonRoot: true

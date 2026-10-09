@@ -137,7 +137,6 @@ func TestSetupDefaults_OGXImageURLFromEnv(t *testing.T) {
 	t.Setenv("RELATED_IMAGE_EXPORTER_IMAGE_URL_DEFAULT", "env/exporter:1")
 	t.Setenv("RELATED_IMAGE_POSTGRES_IMAGE_URL_DEFAULT", "env/postgres:1")
 	t.Setenv("RELATED_IMAGE_OKP_IMAGE_URL_DEFAULT", "env/okp:1")
-	t.Setenv("RELATED_IMAGE_MCP_SERVER_IMAGE_URL_DEFAULT", "env/mcp:1")
 
 	SetupDefaults()
 

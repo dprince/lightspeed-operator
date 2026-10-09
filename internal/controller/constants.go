@@ -151,16 +151,6 @@ const (
 
 	// ---------------------------------------------------------------------------
 
-	// -- Health probe settings for the rhoso-mcps container. --------------------
-
-	MCPServerHealthPath                   = "/health"
-	MCPServerProbePeriodSeconds           = int32(10)
-	MCPServerProbeTimeoutSeconds          = int32(5)
-	MCPServerStartupProbeFailureThreshold = int32(30)
-	MCPServerProbeFailureThreshold        = int32(3)
-
-	// ---------------------------------------------------------------------------
-
 	// -- Data Exporter ----------------------------------------------------------
 
 	ExporterConfigVolumeName       = "exporter-config"
@@ -202,42 +192,6 @@ const (
 	WatsonXProviderName     = "watsonx"
 
 	// ---------------------------------------------------------------------------
-
-	// -- OpenStack Control Plane ------------------------------------------------
-
-	OpenStackControlPlaneGroup   = "core.openstack.org"
-	OpenStackControlPlaneVersion = "v1beta1"
-	OpenStackControlPlaneKind    = "OpenStackControlPlane"
-
-	// ---------------------------------------------------------------------------
-
-	// -- Telemetry / Metric Storage ---------------------------------------------
-
-	// MetricStorageKind is the Kind of the telemetry MetricStorage CR. The Group
-	// and Version come from telemetryv1.GroupVersion (imported from
-	// telemetry-operator/api), and the well-known name/port come from
-	// telemetryv1.DefaultServiceName/DefaultPrometheusPort (telemetry_consts.go)
-	// so they can't drift from the source of truth.
-	MetricStorageKind = "MetricStorage"
-
-	// ---------------------------------------------------------------------------
-
-	// -- Keystone Application Credential ----------------------------------------
-
-	KeystoneApplicationCredentialGroup   = "keystone.openstack.org"
-	KeystoneApplicationCredentialVersion = "v1beta1"
-	KeystoneApplicationCredentialKind    = "KeystoneApplicationCredential"
-
-	// ---------------------------------------------------------------------------
-
-	// LightspeedServiceUserName is Lightspeed Service User in OpenStack created by the
-	// Keystone Application Credential
-	LightspeedServiceUserName    = "lightspeed"
-	LightspeedServiceUserDomain  = "default"
-	LightspeedPasswordSecretName = "lightspeed-password"
-	LightspeedPasswordSecretKey  = "password"
-	LightspeedACCRName           = "lightspeed"
-	LightspeedACFinalizerName    = "openstack.org/lightspeed-ac-consumer"
 
 	// EnvVarSuffixAPIKey is the environment variable suffix for API key credentials
 	EnvVarSuffixAPIKey = "_API_KEY"
@@ -325,10 +279,6 @@ const (
 	OGXConfigMapResourceVersionAnnotation      = "ols.openshift.io/ogx-configmap-version"
 	LCoreConfigMapResourceVersionAnnotation    = "ols.openshift.io/lcore-configmap-version"
 	CABundleConfigMapVersionAnnotation         = "ols.openshift.io/ca-bundle-configmap-version"
-	MCPConfigMapResourceVersionAnnotation      = "ols.openshift.io/mcp-configmap-version"
-	CloudsYAMLConfigMapVersionAnnotation       = "ols.openshift.io/clouds-yaml-configmap-version"
-	SecureYAMLSecretVersionAnnotation          = "ols.openshift.io/secure-yaml-secret-version"        // #nosec G101 -- annotation key, not a credential
-	CombinedCABundleSecretVersionAnnotation    = "ols.openshift.io/combined-ca-bundle-secret-version" // #nosec G101 -- annotation key, not a credential
 
 	// ---------------------------------------------------------------------------
 
@@ -407,9 +357,6 @@ const (
 	// that signs TLS certificates auto-provisioned for Services via the
 	// service.beta.openshift.io/serving-cert-secret-name annotation.
 	OpenShiftServiceCAConfigMap = "openshift-service-ca.crt"
-
-	// OpenStackLightspeedChecksumAnnotation is the annotation key used to store the checksum of resources.
-	OpenStackLightspeedChecksumAnnotation = "openstack.org/checksum"
 )
 
 // PostgresBootStrapScriptContent is shell script that creates database, extensions, and schemas

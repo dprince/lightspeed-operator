@@ -13,8 +13,6 @@ credentials, and deploying `OpenStackLightspeed`. No cluster yet? See
 - A free Red Hat Developer account, to pull some images from
   `registry.redhat.io` — see [registry access](install_guide.md#access-to-registry-images)
   below.
-- Optional: RHOSO installed, only needed for the experimental
-  cluster-introspection feature ([Usage](usage.md)).
 
 ## Access to registry images
 

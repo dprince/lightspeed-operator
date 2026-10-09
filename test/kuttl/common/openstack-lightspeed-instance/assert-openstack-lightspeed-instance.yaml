@@ -467,9 +467,6 @@ status:
       status: "True"
       reason: Ready
       message: Setup complete
-    - type: OpenStackLightspeedMCPServerReady
-      status: "True"
-      message: "RHOSO MCP server is disabled (rhoso_mcps feature flag not set)"
     - type: OpenStackLightspeedReady
       status: "True"
       reason: Ready

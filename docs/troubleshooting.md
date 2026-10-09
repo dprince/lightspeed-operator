@@ -12,7 +12,6 @@ oc describe -n <namespace> openstacklightspeed
 | Condition | Meaning |
 |-----------|---------|
 | `OpenStackLightspeedReady` | Overall readiness. `False`/`Unknown`: engine, database, or OKP hasn't converged yet. |
-| `OpenStackLightspeedMCPServerReady` | Only relevant with `rhoso_mcps` enabled. Tracks the MCP sidecar. |
 
 ## Deployment-specific issues
 

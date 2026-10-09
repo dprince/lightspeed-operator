@@ -90,14 +90,3 @@ func (instance *OpenStackLightspeed) OKPContainerImage() string {
 	}
 	return resolveContainerImage(manifestImage, OpenStackLightspeedDefaultValues.OKPImageURL)
 }
-
-// MCPContainerImage returns the MCP container image for this instance.
-func (instance *OpenStackLightspeed) MCPContainerImage() string {
-	manifestImage := ""
-
-	devConfig, err := instance.ParseDevConfig()
-	if err == nil && devConfig.RhosMCP != nil && devConfig.RhosMCP.ContainerImage != "" {
-		manifestImage = devConfig.RhosMCP.ContainerImage
-	}
-	return resolveContainerImage(manifestImage, OpenStackLightspeedDefaultValues.MCPServerImageURL)
-}

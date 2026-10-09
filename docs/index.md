@@ -19,7 +19,6 @@ cluster and an LLM you can point it at is enough (see [Quickstart](quickstart.md
 >
 > - [lightspeed-operator issues](https://github.com/openstack-k8s-operators/lightspeed-operator/issues)
 > - [lightspeed-rag-content issues](https://github.com/openstack-k8s-operators/lightspeed-rag-content/issues)
-> - [lightspeed-mcps issues](https://github.com/openstack-k8s-operators/lightspeed-mcps/issues)
 >
 > See [Troubleshooting](troubleshooting.md) for what to check, and what to include,
 > before filing an issue.
