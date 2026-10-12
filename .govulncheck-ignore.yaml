@@ -203,3 +203,91 @@ ignored_vulnerabilities:
         "#1: internal/controller/common.go:357:87: controller.CopyResource calls
         gentype.Client[*k8s.io/api/core/v1.Secret].Get, which eventually calls
         url.URL.Parse"
+
+  - id: GO-2026-6599
+    module: stdlib
+    reason: |
+      This affects JavaScript escaping in html/template. The reported paths
+      originate in test utilities; production templates use text/template for
+      configuration files. The operator does not render the affected HTML/JavaScript.
+
+  - id: GO-2026-6600
+    module: stdlib
+    reason: |
+      This is another html/template JavaScript escaping flaw, involving yield.
+      The reported paths originate in test utilities, with no affected production
+      HTML rendering.
+
+  - id: GO-2026-6603
+    module: stdlib
+    reason: |
+      The attack exhausts an HTTP/2 server's memory through declared trailers.
+      cmd/main.go defaults --enable-http2 to false. Outbound HTTP clients do
+      not expose this server-side flaw. Reconsider the ignore if HTTP/2 is enabled.
+
+  - id: GO-2026-6605
+    module: stdlib
+    reason: |
+      Exploitation requires an outbound HTTP/1 CONNECT request with a nonempty
+      body, potentially poisoning a shared connection. The operator makes
+      Kubernetes/OpenStack API requests and does not forward attacker-controlled
+      CONNECT requests through a reverse proxy. Ordinary HTTPS proxy tunneling
+      does not supply that body.
+
+  - id: GO-2026-6607
+    module: stdlib
+    reason: |
+      This requires server-side Encrypted Client Hello processing. The operator
+      does run TLS servers, but neither EncryptedClientHelloKeys nor
+      GetEncryptedClientHelloKeys is configured, so the affected ECH processing
+      is inactive.
+
+  - id: GO-2026-6608
+    module: stdlib
+    reason: |
+      This vulnerability requires parsing an inbound multipart/form-data request.
+      The operator exposes JSON admission, health/readiness, and metrics endpoints;
+      none parse multipart forms. The pprof handler identified by the static scan
+      is not exposed by this operator.
+
+  - id: GO-2026-6610
+    module: stdlib
+    reason: |
+      Response smuggling requires forwarding malformed HTTP/2 response headers
+      to an HTTP/1 client. The operator consumes API responses itself and does
+      not act as that reverse proxy, so the required forwarding path is absent.
+
+  - id: GO-2026-6611
+    module: stdlib
+    reason: |
+      This temporary ignore accepts a very low residual availability risk until upgrading
+      Go. The operator connects only to TLS-authenticated Kubernetes endpoints.
+      Exploitation requires an attacker to control or impersonate one of those
+      trusted endpoints and negotiate HTTP/2; an ordinary workload cannot do this.
+      A malicious peer could consume CPU with SETTINGS frames, but Go's HTTP/2
+      client disables server push, so it cannot create streams itself; work is
+      limited to the operator's own concurrent API requests.
+
+  - id: GO-2026-6612
+    module: stdlib
+    reason: |
+      This bypasses an HTTP/2 server's connection-level receive limit using
+      stream resets. The current webhook/metrics configuration disables the
+      required protocol. Reconsider if --enable-http2=true is used.
+
+  - id: GO-2026-6613
+    module: stdlib
+    reason: |
+      Exploitation requires an HTTP-aware proxy in front of the operator that accepts
+      CONNECT and applies a policy that can be bypassed after a 2xx CONNECT response.
+      The shipped deployment has no such proxy: health is a kubelet probe and the
+      webhook is an internal ClusterIP Service called by the Kubernetes API server.
+      This is not applicable as shipped; reassess if a proxy or service mesh exposes
+      these endpoints.
+
+  - id: GO-2026-6617
+    module: stdlib
+    reason: |
+      This crashes an HTTP/2 server through concurrent HPACK encoder changes.
+      The current HTTP/1.1-only server configuration prevents the trigger;
+      outbound clients are not affected by this server-specific race.
