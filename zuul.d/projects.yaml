@@ -4,7 +4,21 @@
     default-branch: main
     github-check:
       jobs:
-        - openstack-k8s-operators-content-provider
+        - openstack-k8s-operators-content-provider:
+            irrelevant-files: &irrelevant-files
+              - ^.*\.md$
+              - ^\.\..*$
+              - ^\.govulncheck-ignore\.yaml$
+              - ^docs/.*$
+              - ^LICENSE$
+              - ^OWNERS$
+              - ^OWNERS_ALIASES$
+              - ^PROJECT$
+              - ^README.md$
+              - ^tests?\/functional
+              - ^roles/.*/molecule/.*
         - lightspeed-operator-deployment-crc:
             voting: false
-        - lightspeed-operator-kuttl
+            irrelevant-files: *irrelevant-files
+        - lightspeed-operator-kuttl:
+            irrelevant-files: *irrelevant-files

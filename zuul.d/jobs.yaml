@@ -39,17 +39,6 @@
     dependencies:
       - openstack-k8s-operators-content-provider
     attempts: 1
-    irrelevant-files: &irrelevant-files
-      - ^.*/\*.md$
-      - ^\.\..*$
-      - ^docs/.*$
-      - ^LICENSE$
-      - ^OWNERS$
-      - ^OWNERS_ALIASES$
-      - ^PROJECT$
-      - ^README.md$
-      - ^tests?\/functional
-      - ^roles/.*/molecule/.*
     vars:
       cifmw_kuttl_tests_operator_list:
         - openstack_lightspeed
