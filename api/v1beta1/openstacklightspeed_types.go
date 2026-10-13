@@ -48,7 +48,7 @@ const (
 	ConsoleContainerImagePF5 = "registry.redhat.io/openshift-lightspeed/lightspeed-console-plugin-pf5-rhel9:1.0.12"
 
 	// OKPContainerImage is the fall-back container image for OKP (Offline Knowledge Portal)
-	OKPContainerImage = "registry.redhat.io/offline-knowledge-portal/rhokp-rhel9@sha256:576abe26ace61e70c077ca45bbb7c754ae3e1579b3122a09ea97ca311b3c8c3f"
+	OKPContainerImage = "registry.redhat.io/offline-knowledge-portal/rhokp-rhel9:latest"
 
 	// MCPServerContainerImage is the fall-back container image for the MCP server
 	MCPServerContainerImage = "quay.io/openstack-lightspeed/lightspeed-mcps:latest"
