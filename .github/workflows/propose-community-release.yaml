@@ -1,0 +1,99 @@
+name: Propose community operator release
+
+on:
+  workflow_dispatch:
+    inputs:
+      new_version:
+        description: 'Community release version (X.Y.Z)'
+        required: true
+        type: string
+      container_image_tag:
+        description: 'Published operator and bundle image tag'
+        required: true
+        default: latest
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: community-release-${{ vars.COMMUNITY_OPERATORS_FORK }}-${{ inputs.new_version }}
+  cancel-in-progress: false
+
+jobs:
+  propose-release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    env:
+      NEW_VERSION: ${{ inputs.new_version }}
+      CONTAINER_IMAGE_TAG: ${{ inputs.container_image_tag }}
+      FORK_REPOSITORY: ${{ vars.COMMUNITY_OPERATORS_FORK }}  # owner/repo-name
+      AUTHOR_NAME: ${{ vars.RELEASE_AUTHOR_NAME }}
+      AUTHOR_EMAIL: ${{ vars.RELEASE_AUTHOR_EMAIL }}
+
+    steps:
+      - name: Check out release scripts
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          sparse-checkout: .github
+          persist-credentials: false
+
+      - name: Check out community operators
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: redhat-openshift-ecosystem/community-operators-prod
+          ref: main
+          path: community-operators-prod
+          # Keep history for pushing to forks that are behind upstream.
+          fetch-depth: 0
+          sparse-checkout: operators/openstack-lightspeed-operator
+          persist-credentials: false
+
+      - name: Prepare community bundle
+        id: bundle
+        working-directory: community-operators-prod
+        env:
+          # The preparation script only needs to know whether the PAT is configured.
+          HAS_TOKEN: ${{ secrets.COMMUNITY_OPERATORS_TOKEN != '' }}
+        run: bash "$GITHUB_WORKSPACE/.github/scripts/prepare_community_bundle.sh"
+
+      - name: Install operator-sdk
+        uses: redhat-actions/openshift-tools-installer@37eb3cfb20ac2df6f0511ffa71cd917e4d49cabf # v3
+        with:
+          source: github
+          operator-sdk: 1.42.3
+
+      - name: Validate community bundle
+        working-directory: community-operators-prod
+        run: operator-sdk bundle validate "./operators/openstack-lightspeed-operator/$NEW_VERSION"
+
+      # Scorecard executes its tests in Kubernetes pods.
+      - name: Create cluster for scorecard
+        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
+        with:
+          cluster_name: community-scorecard
+          wait: 120s
+
+      - name: Run community bundle scorecard
+        working-directory: community-operators-prod
+        run: operator-sdk scorecard "./operators/openstack-lightspeed-operator/$NEW_VERSION" --wait-time 5m
+
+      - name: Create or update upstream pull request
+        id: pr
+        working-directory: community-operators-prod
+        env:
+          GH_TOKEN: ${{ secrets.COMMUNITY_OPERATORS_TOKEN }}
+          GH_PROMPT_DISABLED: "1"
+          GIT_TERMINAL_PROMPT: "0"
+          OPERATOR_DIGEST: ${{ steps.bundle.outputs.operator_digest }}
+          BUNDLE_DIGEST: ${{ steps.bundle.outputs.bundle_digest }}
+        run: bash "$GITHUB_WORKSPACE/.github/scripts/create_or_update_upstream_pr.sh"
+
+      - name: Show pull request
+        env:
+          PR_URL: ${{ steps.pr.outputs.pull-request-url }}
+        run: |
+          printf 'Release pull request: %s\n' "$PR_URL" >> "$GITHUB_STEP_SUMMARY"
