@@ -40,6 +40,9 @@ var (
 	// ErrCreateSARClusterRoleBinding is returned when the SAR ClusterRoleBinding cannot be created.
 	ErrCreateSARClusterRoleBinding = errors.New("failed to create SAR cluster role binding")
 
+	// ErrCreateAccessClusterRole is returned when the access ClusterRole cannot be created.
+	ErrCreateAccessClusterRole = errors.New("failed to create access cluster role")
+
 	// ErrDeleteSARClusterRole is returned when the SAR ClusterRole cannot be deleted.
 	ErrDeleteSARClusterRole = errors.New("failed to delete SAR cluster role")
 

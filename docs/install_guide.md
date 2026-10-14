@@ -163,3 +163,33 @@ Not reaching `Ready`? See [Troubleshooting](troubleshooting.md).
 
 Goose CLI is the primary supported interface for RHOSO 19 Beta.
 See [Usage](usage.md) for available features and model selection.
+
+## Accessing the API
+
+API requests are authenticated with an OpenShift access token. The OpenShift
+identity represented by that token must be assigned the `lightspeed-access`
+ClusterRole. For example, grant the current user access:
+
+```bash
+oc adm policy add-cluster-role-to-user lightspeed-access "$(oc whoami)"
+```
+
+To call the API from your workstation, forward the service port in one terminal:
+
+```bash
+oc -n openstack-lightspeed port-forward service/lightspeed-app-server 8443:8443
+```
+
+Then, in another terminal, use the current OpenShift token to submit a query:
+
+```bash
+curl --insecure \
+  --header "Authorization: Bearer $(oc whoami -t)" \
+  --header 'Content-Type: application/json' \
+  --data '{"query":"How can I check Nova services?"}' \
+  https://localhost:8443/v1/query
+```
+
+`--insecure` is needed here because the service certificate is issued for the
+in-cluster service DNS name, not `localhost`. For a service account or another
+user, bind `lightspeed-access` to that identity and use its token instead.

@@ -37,6 +37,7 @@ const (
 	OpenStackLightspeedAppServerServiceAccountName = "lightspeed-app-server"
 	OpenStackLightspeedAppServerSARRoleName        = OpenStackLightspeedAppServerServiceAccountName + "-sar-role"
 	OpenStackLightspeedAppServerSARRoleBindingName = OpenStackLightspeedAppServerSARRoleName + "-binding"
+	OpenStackLightspeedAccessClusterRoleName       = "lightspeed-access"
 	OpenStackLightspeedAppServerContainerPort      = 8443
 	OpenStackLightspeedAppServerServicePort        = 8443
 	OpenStackLightspeedAppServerServiceName        = "lightspeed-app-server"

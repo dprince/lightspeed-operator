@@ -51,6 +51,7 @@ func ReconcileLCoreResources(ctx context.Context, h *common_helper.Helper, insta
 		{Name: "CABundle", Task: reconcileCABundleConfigMap},
 		{Name: "ProxyCAConfigMap", Task: reconcileProxyCAConfigMap},
 		{Name: "NetworkPolicy", Task: reconcileNetworkPolicy},
+		{Name: "AccessClusterRole", Task: reconcileAccessClusterRole},
 	}
 
 	return ReconcileTasks(ctx, h, instance, tasks)
@@ -175,6 +176,38 @@ func reconcileSARRoleBinding(ctx context.Context, h *common_helper.Helper, _ *ap
 	}
 
 	logger.Info("SAR ClusterRoleBinding reconciled", "name", rb.Name, "result", result)
+	return nil
+}
+
+// reconcileAccessClusterRole ensures the lightspeed-access ClusterRole exists.
+// Bind this role to users who need OpenStack Lightspeed access; lcore authorizes
+// requests by checking their get permission on the /ls-access endpoint.
+func reconcileAccessClusterRole(ctx context.Context, h *common_helper.Helper, _ *apiv1beta1.OpenStackLightspeed) error {
+	logger := h.GetLogger()
+
+	role := &rbacv1.ClusterRole{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:   OpenStackLightspeedAccessClusterRoleName,
+			Labels: generateAppServerSelectorLabels(),
+		},
+	}
+
+	result, err := controllerutil.CreateOrPatch(ctx, h.GetClient(), role, func() error {
+		role.Rules = []rbacv1.PolicyRule{
+			{
+				NonResourceURLs: []string{"/ls-access"},
+				Verbs:           []string{"get"},
+			},
+		}
+		// ClusterRole is cluster-scoped, so it cannot have an owner reference.
+		return nil
+	})
+
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrCreateAccessClusterRole, err)
+	}
+
+	logger.Info("Access ClusterRole reconciled", "name", role.Name, "result", result)
 	return nil
 }
 
