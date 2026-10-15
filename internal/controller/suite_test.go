@@ -25,8 +25,6 @@ import (
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 
-	consolev1 "github.com/openshift/api/console/v1"
-	openshiftv1 "github.com/openshift/api/operator/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -75,12 +73,6 @@ var _ = ginkgo.BeforeSuite(func() {
 	gomega.Expect(cfg).NotTo(gomega.BeNil())
 
 	err = apiv1beta1.AddToScheme(scheme.Scheme)
-	gomega.Expect(err).NotTo(gomega.HaveOccurred())
-
-	err = consolev1.AddToScheme(scheme.Scheme)
-	gomega.Expect(err).NotTo(gomega.HaveOccurred())
-
-	err = openshiftv1.AddToScheme(scheme.Scheme)
 	gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
 	// +kubebuilder:scaffold:scheme

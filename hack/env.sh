@@ -8,7 +8,4 @@ export RELATED_IMAGE_POSTGRES_IMAGE_URL_DEFAULT="quay.io/sclorg/postgresql-16-c1
 # is ready.
 export RELATED_IMAGE_OPENSTACK_LIGHTSPEED_IMAGE_URL_DEFAULT="quay.io/openstack-lightspeed/rag-content:os-docs-2026.1-ogx"
 export RELATED_IMAGE_OKP_IMAGE_URL_DEFAULT="registry.redhat.io/offline-knowledge-portal/rhokp-rhel9:latest"
-export RELATED_IMAGE_CONSOLE_IMAGE_URL_DEFAULT="registry.redhat.io/openshift-lightspeed/lightspeed-console-plugin-rhel9:1.0.12"
-export RELATED_IMAGE_CONSOLE_PF5_IMAGE_URL_DEFAULT="registry.redhat.io/openshift-lightspeed/lightspeed-console-plugin-pf5-rhel9:1.0.12"
-export RELATED_IMAGE_MCP_SERVER_IMAGE_URL_DEFAULT="quay.io/openstack-lightspeed/lightspeed-mcps:latest"
 export WATCH_NAMESPACE="openstack-lightspeed"

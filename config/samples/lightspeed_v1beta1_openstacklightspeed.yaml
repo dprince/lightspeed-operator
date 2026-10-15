@@ -60,26 +60,11 @@ spec:
   #   transcripts:
   #     enabled: false
   #   containerImage: quay.io/lightspeed-core/lightspeed-to-dataverse-exporter:latest
-  # Uncomment to enable RHOSO MCPs (MCP server sidecar with OpenStack/OpenShift tools)
+  # Uncomment to customize developer configuration:
   # dev:
-  #   featureFlags:
-  #     - rhoso_mcps
   #   okpChunkFilterQuery: "product:(*openstack* OR *openshift*)"
   #   okpRagOnly: true
   #   resourcePollInterval: 60
-  #   # Custom MCP server config (deep-merged with operator defaults;
-  #   # openstack.enabled and openshift.enabled are always overridden):
-  #   rhosMCP:
-  #     config: |
-  #       debug: true
-  #       workers: 4
-  #     resources:
-  #       requests:
-  #         cpu: "50m"
-  #         memory: "64Mi"
-  #       limits:
-  #         memory: "200Mi"
-  #     containerImage: quay.io/openstack-lightspeed/lightspeed-mcps:latest
   # okp:
   #   accessKey: okp-access-key-secret
   #   offline: true
@@ -91,15 +76,6 @@ spec:
   #       cpu: "2"
   #       memory: "4Gi"
   #   containerImage: registry.redhat.io/offline-knowledge-portal/rhokp-rhel9:latest
-  # console:
-  #   resources:
-  #     requests:
-  #       cpu: "50m"
-  #       memory: "256Mi"
-  #     limits:
-  #       cpu: "1"
-  #       memory: "2Gi"
-  #   containerImage: registry.redhat.io/openshift-lightspeed/lightspeed-console-plugin-rhel9:1.0.12
   # Uncomment to enable quota enforcement (opt-in; omit or leave limiters empty to disable):
   # quotas:
   #   limiters:

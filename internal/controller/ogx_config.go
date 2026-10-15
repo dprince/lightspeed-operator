@@ -34,8 +34,7 @@ func buildOGXCoreConfig(_ *common_helper.Helper, _ *apiv1beta1.OpenStackLightspe
 		// Note: Does NOT affect PostgreSQL database name (ogx uses hardcoded value)
 		"image_name": "openstack-lightspeed-configuration",
 
-		// Minimal APIs for RAG + MCP: responeses (for MCP), files, inference,
-		// telemetry, tool_runtime, vector_io.
+		// APIs used by Lightspeed Stack for inference and retrieval.
 		"apis": []string{
 			"files",
 			"inference",

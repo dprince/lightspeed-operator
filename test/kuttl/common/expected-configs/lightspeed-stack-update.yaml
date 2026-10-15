@@ -63,7 +63,6 @@ database:
 inference:
   default_model: default-model
   default_provider: provider-default-model
-mcp_servers: []
 name: Lightspeed Core Service (LCS)
 ogx:
   url: http://localhost:8321

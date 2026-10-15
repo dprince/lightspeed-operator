@@ -17,15 +17,12 @@ limitations under the License.
 package controller
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 	"testing"
 	"time"
 
 	apiv1beta1 "github.com/openstack-k8s-operators/lightspeed-operator/api/v1beta1"
-	"k8s.io/apimachinery/pkg/api/resource"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -125,106 +122,6 @@ func TestGenerateRandomStringUniqueness(t *testing.T) {
 	if a == b {
 		t.Errorf("generateRandomString(%d) returned identical values across two calls: %q", length, a)
 	}
-}
-
-func TestGetRhosMCPResources_DefaultsWhenUnset(t *testing.T) {
-	instance := &apiv1beta1.OpenStackLightspeed{
-		ObjectMeta: metav1.ObjectMeta{Name: "test", Namespace: "default"},
-	}
-
-	resources := getRhosMCPResources(instance)
-	defaults := defaultRhosMCPResources()
-
-	if !resources.Requests.Cpu().Equal(*defaults.Requests.Cpu()) {
-		t.Errorf("expected default CPU request %v, got %v", defaults.Requests.Cpu(), resources.Requests.Cpu())
-	}
-	if !resources.Requests.Memory().Equal(*defaults.Requests.Memory()) {
-		t.Errorf("expected default memory request %v, got %v", defaults.Requests.Memory(), resources.Requests.Memory())
-	}
-	if !resources.Limits.Memory().Equal(*defaults.Limits.Memory()) {
-		t.Errorf("expected default memory limit %v, got %v", defaults.Limits.Memory(), resources.Limits.Memory())
-	}
-}
-
-func TestGetRhosMCPResources_CustomFromDevConfig(t *testing.T) {
-	devRaw, err := json.Marshal(map[string]interface{}{
-		"rhosMCP": map[string]interface{}{
-			"resources": map[string]interface{}{
-				"requests": map[string]string{
-					"cpu":    "100m",
-					"memory": "128Mi",
-				},
-				"limits": map[string]string{
-					"memory": "256Mi",
-				},
-			},
-		},
-	})
-	if err != nil {
-		t.Fatalf("failed to marshal dev config: %v", err)
-	}
-
-	instance := &apiv1beta1.OpenStackLightspeed{
-		ObjectMeta: metav1.ObjectMeta{Name: "test", Namespace: "default"},
-		Spec: apiv1beta1.OpenStackLightspeedSpec{
-			Dev: runtime.RawExtension{Raw: devRaw},
-		},
-	}
-
-	resources := getRhosMCPResources(instance)
-
-	expectedCPU := resource.MustParse("100m")
-	if !resources.Requests.Cpu().Equal(expectedCPU) {
-		t.Errorf("expected CPU request %v, got %v", expectedCPU, resources.Requests.Cpu())
-	}
-	expectedMemory := resource.MustParse("128Mi")
-	if !resources.Requests.Memory().Equal(expectedMemory) {
-		t.Errorf("expected memory request %v, got %v", expectedMemory, resources.Requests.Memory())
-	}
-	expectedLimit := resource.MustParse("256Mi")
-	if !resources.Limits.Memory().Equal(expectedLimit) {
-		t.Errorf("expected memory limit %v, got %v", expectedLimit, resources.Limits.Memory())
-	}
-}
-
-func TestBuildMCPServerConfigMap_UsesDevRhosMCPConfig(t *testing.T) {
-	devRaw, err := json.Marshal(map[string]interface{}{
-		"rhosMCP": map[string]interface{}{
-			"config": "debug: true\nworkers: 2\n",
-		},
-	})
-	if err != nil {
-		t.Fatalf("failed to marshal dev config: %v", err)
-	}
-
-	instance := &apiv1beta1.OpenStackLightspeed{
-		ObjectMeta: metav1.ObjectMeta{Name: "test", Namespace: "default"},
-		Spec: apiv1beta1.OpenStackLightspeedSpec{
-			Dev: runtime.RawExtension{Raw: devRaw},
-		},
-	}
-
-	configMap, err := BuildMCPServerConfigMap(instance, false, nil)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	configData := configMap.Data["config.yaml"]
-	if configData == "" {
-		t.Fatal("expected config.yaml data")
-	}
-	if !containsAll(configData, "debug: true", "workers: 2") {
-		t.Errorf("expected merged config to contain user overrides, got:\n%s", configData)
-	}
-}
-
-func containsAll(s string, subs ...string) bool {
-	for _, sub := range subs {
-		if !strings.Contains(s, sub) {
-			return false
-		}
-	}
-	return true
 }
 
 func TestGetRawClientReturnsCachedClient(t *testing.T) {

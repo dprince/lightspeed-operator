@@ -23,39 +23,26 @@ cd ../..
 `PULL_SECRET` is the same pull secret described in the
 [installation guide](install_guide.md#access-to-registry-images).
 
-CRC's console is always at a fixed address:
-[console-openshift-console.apps-crc.testing](https://console-openshift-console.apps-crc.testing) — not something you
-look up with `oc whoami --show-console`.
-
-Running CRC remotely? Reach that console with `sshuttle`:
-
-- Add to your local `/etc/hosts` (keep the IP as-is):
-  `192.168.130.11 api.crc.testing canary-openshift-ingress-canary.apps-crc.testing console-openshift-console.apps-crc.testing default-route-openshift-image-registry.apps-crc.testing downloads-openshift-console.apps-crc.testing oauth-openshift.apps-crc.testing`
-- Run `sshuttle -r $remote_username@$remote_server 192.168.130.0/24`.
-
 ## Architecture
 
 ```mermaid
 graph TB
-    User[System Administrator] -->|uses console widget| Plugin
+    User[System Administrator] --> Goose[Goose CLI]
 
     subgraph ns["openstack-lightspeed namespace"]
         CR[OpenStackLightspeed CR] --> Operator[lightspeed-operator]
-        Operator --> Plugin[Console Plugin]
         Operator --> DB[(PostgreSQL)]
         Operator --> OKP[OKP]
         Operator --> Pod
 
         subgraph Pod["lightspeed-stack pod"]
             API[lightspeed-service-api] --> OGX
-            OGX -.-> MCP[MCP tools sidecar]
         end
     end
 
-    Plugin --> API
+    Goose --> API
     OGX --> OKP
     OGX --> LLM[Your LLM endpoint]
-    MCP -.->|read-only, optional| OSP[Your OpenStack / OpenShift APIs]
 ```
 
 **OKP is deployed on every install, not opt-in.** It's the default RAG
@@ -94,7 +81,6 @@ Operator-managed workloads are hardened by default with explicit
 validated. Current intentional exceptions are:
 
 - **OKP** container (runtime writes to image-managed paths)
-- **MCP** sidecar (optional dev feature; may need mutable runtime paths)
 
 If you change container startup behavior or image layout, re-validate
 writable paths before enabling/disabling `readOnlyRootFilesystem`.

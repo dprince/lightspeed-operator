@@ -41,17 +41,8 @@ const (
 	// PostgresContainerImage is the fall-back container image for PostgreSQL
 	PostgresContainerImage = "quay.io/sclorg/postgresql-16-c10s:latest"
 
-	// ConsoleContainerImage is the fall-back container image for the Console Plugin (PatternFly 6, OCP >= 4.19)
-	ConsoleContainerImage = "registry.redhat.io/openshift-lightspeed/lightspeed-console-plugin-rhel9:1.0.12"
-
-	// ConsoleContainerImagePF5 is the fall-back console image for PatternFly 5 (OCP < 4.19)
-	ConsoleContainerImagePF5 = "registry.redhat.io/openshift-lightspeed/lightspeed-console-plugin-pf5-rhel9:1.0.12"
-
 	// OKPContainerImage is the fall-back container image for OKP (Offline Knowledge Portal)
 	OKPContainerImage = "registry.redhat.io/offline-knowledge-portal/rhokp-rhel9:latest"
-
-	// MCPServerContainerImage is the fall-back container image for the MCP server
-	MCPServerContainerImage = "quay.io/openstack-lightspeed/lightspeed-mcps:latest"
 
 	// MaxTokensForResponseDefault is the default maximum number of tokens that should be used for response
 	MaxTokensForResponseDefault = 2048
@@ -59,35 +50,16 @@ const (
 
 // DevSpec is the internal structure for the Dev field. Not exposed in the CRD.
 // This means that there are no sub-schemas and no defaults, so all fields need to get defaults from functions.
-// For example for rhosMCP.resources we get them from the `defaultRhosMCPResources` in common.go
 // May change at any time without backward compatibility.
 //
 // Supported fields:
-//   - featureFlags: list of experimental feature flags to enable. Configuration options for experimental features must also live within the `DevSpec`.
 //   - okpChunkFilterQuery: Solr filter query for OKP searches (default: version-aware query combining detected OpenStack and OCP versions)
 //   - okpRagOnly: when true, only OKP is used as a RAG source (default: true)
-//   - rhosMCP: configuration for the rhos-mcps sidecar (resources, container image override, and custom YAML config); config is deep-merged on top of the operator defaults, openstack.enabled and openshift.enabled are always overridden by the operator
-//   - resourcePollInterval: requeue/poll interval in seconds when dynamically watched CRD is missing or when rhoso_mcps is enabled because the cache-based watch only covers the operator namespace, so polling detects cross-namespace changes such as OpenStackControlPlane readiness, CA rotations, etc. (default: 60)
+//   - resourcePollInterval: requeue interval in seconds while waiting for resources to become ready (default: 60)
 type DevSpec struct {
-	FeatureFlags        []string `json:"featureFlags,omitempty"`
-	OKPChunkFilterQuery string   `json:"okpChunkFilterQuery,omitempty"`
-	OKPRagOnly          *bool    `json:"okpRagOnly,omitempty"`
-	// rhosMCP configures the rhos-mcps sidecar container (only used when the rhoso_mcps feature flag is enabled).
-	RhosMCP              *RhosMCPSpec `json:"rhosMCP,omitempty"`
-	ResourcePollInterval int          `json:"resourcePollInterval,omitempty"`
-}
-
-// RhosMCPSpec defines configuration for the rhos-mcps sidecar container.
-type RhosMCPSpec struct {
-	// +kubebuilder:default:={requests: {cpu: "50m", memory: "300Mi"}, limits: {memory: "500Mi"}}
-	// Resources sets compute resources for the rhos-mcps sidecar container.
-	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
-
-	// Config is a YAML string that overrides the default configuration (file internal/controller/assets/mcp_server_config.yaml.tmpl) for the rhos-mcps service.
-	Config string `json:"config,omitempty"`
-
-	// ContainerImage overrides the rhos-mcps container image. When unset, the operator default is used.
-	ContainerImage string `json:"containerImage,omitempty"`
+	OKPChunkFilterQuery  string `json:"okpChunkFilterQuery,omitempty"`
+	OKPRagOnly           *bool  `json:"okpRagOnly,omitempty"`
+	ResourcePollInterval int    `json:"resourcePollInterval,omitempty"`
 }
 
 // OKPSpec defines configuration for the Offline Knowledge Portal (OKP).
@@ -160,19 +132,6 @@ type DatabaseSpec struct {
 
 	// +kubebuilder:validation:Optional
 	// ContainerImage overrides the PostgreSQL container image. When unset, the operator default is used.
-	ContainerImage string `json:"containerImage,omitempty"`
-}
-
-// ConsoleSpec defines configuration for the lightspeed console plugin.
-type ConsoleSpec struct {
-	// +kubebuilder:validation:Optional
-	// +kubebuilder:default:={requests: {cpu: "50m", memory: "64Mi"}, limits: {cpu: "200m", memory: "256Mi"}}
-	// Resources sets compute resources for the lightspeed-console-plugin
-	// container and its init container.
-	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
-
-	// +kubebuilder:validation:Optional
-	// ContainerImage overrides the console plugin container image. When unset, the operator default is used.
 	ContainerImage string `json:"containerImage,omitempty"`
 }
 
@@ -296,11 +255,6 @@ type OpenStackLightspeedSpec struct {
 	// Dev contains developer/experimental configuration.
 	// This section is not part of the stable API and may change at any time without backward compatibility.
 	Dev runtime.RawExtension `json:"dev,omitempty"`
-
-	// +kubebuilder:validation:Optional
-	// +kubebuilder:default:={}
-	// Console configures the lightspeed console plugin.
-	Console *ConsoleSpec `json:"console,omitempty"`
 }
 
 // DataverseExporterFeedback defines feedback collection configuration for the dataverse exporter.
@@ -434,16 +388,6 @@ type OpenStackLightspeedStatus struct {
 
 	// ObservedGeneration - the most recent generation observed for this object.
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
-
-	// +optional
-	// OpenStackReady indicates whether an OpenStackControlPlane was detected and
-	// is ready. When true, the OpenStack MCP tools are included in lightspeed-stack config.
-	OpenStackReady bool `json:"openStackReady,omitempty"`
-
-	// +optional
-	// ApplicationCredentialSecret is the name of the current AC secret in the
-	// OpenStack namespace. Tracked for rotation detection.
-	ApplicationCredentialSecret string `json:"applicationCredentialSecret,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -468,7 +412,6 @@ type OpenStackLightspeedStatus struct {
 // +operator-sdk:csv:customresourcedefinitions:resources={{PersistentVolumeClaim,v1,openstack-lightspeed-database}}
 // +operator-sdk:csv:customresourcedefinitions:resources={{ClusterRole,v1,lightspeed-app-server-sar-role}}
 // +operator-sdk:csv:customresourcedefinitions:resources={{ClusterRoleBinding,v1,lightspeed-app-server-sar-role-binding}}
-// +operator-sdk:csv:customresourcedefinitions:resources={{ConfigMap,v1,mcp-config}}
 // +operator-sdk:csv:customresourcedefinitions:resources={{Subscription,v1alpha1}}
 // +operator-sdk:csv:customresourcedefinitions:resources={{ClusterServiceVersion,v1alpha1}}
 // +operator-sdk:csv:customresourcedefinitions:resources={{InstallPlan,v1alpha1}}
@@ -508,10 +451,7 @@ type OpenStackLightspeedDefaults struct {
 	OGXImageURL          string
 	ExporterImageURL     string
 	PostgresImageURL     string
-	ConsoleImageURL      string
-	ConsoleImagePF5URL   string
 	OKPImageURL          string
-	MCPServerImageURL    string
 	MaxTokensForResponse int
 }
 
@@ -534,14 +474,8 @@ func SetupDefaults() {
 			"RELATED_IMAGE_EXPORTER_IMAGE_URL_DEFAULT", ExporterContainerImage),
 		PostgresImageURL: util.GetEnvVar(
 			"RELATED_IMAGE_POSTGRES_IMAGE_URL_DEFAULT", PostgresContainerImage),
-		ConsoleImageURL: util.GetEnvVar(
-			"RELATED_IMAGE_CONSOLE_IMAGE_URL_DEFAULT", ConsoleContainerImage),
-		ConsoleImagePF5URL: util.GetEnvVar(
-			"RELATED_IMAGE_CONSOLE_PF5_IMAGE_URL_DEFAULT", ConsoleContainerImagePF5),
 		OKPImageURL: util.GetEnvVar(
 			"RELATED_IMAGE_OKP_IMAGE_URL_DEFAULT", OKPContainerImage),
-		MCPServerImageURL: util.GetEnvVar(
-			"RELATED_IMAGE_MCP_SERVER_IMAGE_URL_DEFAULT", MCPServerContainerImage),
 		MaxTokensForResponse: MaxTokensForResponseDefault,
 	}
 

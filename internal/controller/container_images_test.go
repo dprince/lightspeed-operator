@@ -17,6 +17,7 @@ limitations under the License.
 package controller
 
 import (
+	"context"
 	"testing"
 
 	apiv1beta1 "github.com/openstack-k8s-operators/lightspeed-operator/api/v1beta1"
@@ -31,20 +32,17 @@ const (
 	testExporterImage   = "example.com/exporter:override"
 	testPostgresImage   = "example.com/postgres:override"
 	testOKPImage        = "example.com/okp:override"
-	testConsoleImage    = "example.com/console:override"
 )
 
 func setContainerImageTestDefaults(t *testing.T) {
 	t.Helper()
 	apiv1beta1.OpenStackLightspeedDefaultValues = apiv1beta1.OpenStackLightspeedDefaults{
-		RAGImageURL:        "default/rag:1",
-		LCoreImageURL:      "default/lcore:1",
-		OGXImageURL:        "default/ogx:1",
-		ExporterImageURL:   "default/exporter:1",
-		PostgresImageURL:   "default/postgres:1",
-		OKPImageURL:        "default/okp:1",
-		ConsoleImageURL:    "default/console-pf6:1",
-		ConsoleImagePF5URL: "default/console-pf5:1",
+		RAGImageURL:      "default/rag:1",
+		LCoreImageURL:    "default/lcore:1",
+		OGXImageURL:      "default/ogx:1",
+		ExporterImageURL: "default/exporter:1",
+		PostgresImageURL: "default/postgres:1",
+		OKPImageURL:      "default/okp:1",
 	}
 }
 
@@ -73,7 +71,6 @@ func makeContainerImageTestInstance() *apiv1beta1.OpenStackLightspeed {
 					Feedback:       &apiv1beta1.DataverseExporterFeedback{Enabled: &feedbackDisabled},
 				},
 			},
-			Console:  &apiv1beta1.ConsoleSpec{ContainerImage: testConsoleImage},
 			Database: &apiv1beta1.DatabaseSpec{ContainerImage: testPostgresImage},
 			OKP:      &apiv1beta1.OKPSpec{ContainerImage: testOKPImage},
 		},
@@ -123,22 +120,40 @@ func TestBuildOKPPodTemplateSpec_UsesContainerImageOverride(t *testing.T) {
 	}
 }
 
-func TestBuildConsoleDeploymentSpec_UsesContainerImageOverride(t *testing.T) {
+func TestBuildLCorePodTemplateSpec_CoreContainers(t *testing.T) {
 	setContainerImageTestDefaults(t)
-	instance := makeContainerImageTestInstance()
+	for _, devConfig := range []string{"", `{"featureFlags":["rhoso_mcps"],"rhosMCP":{"containerImage":"example.com/mcp:legacy"}}`} {
+		name := "default configuration"
+		if devConfig != "" {
+			name = "legacy MCP configuration"
+		}
+		t.Run(name, func(t *testing.T) {
+			instance := makeContainerImageTestInstance()
+			instance.Spec.Dev.Raw = []byte(devConfig)
+			h := newTestHelper(t)
 
-	spec := buildConsoleDeploymentSpec(testConsoleImage, instance)
-	if len(spec.Template.Spec.InitContainers) != 1 {
-		t.Fatalf("expected 1 init container, got %d", len(spec.Template.Spec.InitContainers))
-	}
-	if len(spec.Template.Spec.Containers) != 1 {
-		t.Fatalf("expected 1 container, got %d", len(spec.Template.Spec.Containers))
-	}
-
-	if got := spec.Template.Spec.InitContainers[0].Image; got != testConsoleImage {
-		t.Errorf("console init container image = %q, want %q", got, testConsoleImage)
-	}
-	if got := spec.Template.Spec.Containers[0].Image; got != testConsoleImage {
-		t.Errorf("console container image = %q, want %q", got, testConsoleImage)
+			podTemplate, err := buildLCorePodTemplateSpec(context.Background(), h, instance)
+			if err != nil {
+				t.Fatal(err)
+			}
+			containers := podTemplate.Spec.Containers
+			if len(containers) != 2 {
+				t.Fatalf("expected only OGX and Lightspeed API containers when data collection is disabled, got %d", len(containers))
+			}
+			for _, container := range containers {
+				var wantImage string
+				switch container.Name {
+				case "ogx":
+					wantImage = testOGXImage
+				case "lightspeed-service-api":
+					wantImage = testLightspeedImage
+				default:
+					t.Fatalf("unexpected container %q", container.Name)
+				}
+				if container.Image != wantImage {
+					t.Errorf("%s image = %q, want %q", container.Name, container.Image, wantImage)
+				}
+			}
+		})
 	}
 }

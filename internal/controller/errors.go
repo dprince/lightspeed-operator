@@ -76,36 +76,6 @@ var (
 	// ErrGetCAConfigMap is returned when the CA ConfigMap cannot be retrieved.
 	ErrGetCAConfigMap = errors.New("failed to get CA configmap")
 
-	// ErrReconcileConsolePlugin is returned when the console plugin reconciliation fails.
-	ErrReconcileConsolePlugin = errors.New("failed to reconcile console plugin")
-
-	// ErrReconcileConsoleDeployment is returned when the console Deployment reconciliation fails.
-	ErrReconcileConsoleDeployment = errors.New("failed to reconcile console deployment")
-
-	// ErrReconcileConsoleConfigMap is returned when the console ConfigMap reconciliation fails.
-	ErrReconcileConsoleConfigMap = errors.New("failed to reconcile console configmap")
-
-	// ErrReconcileConsoleService is returned when the console Service reconciliation fails.
-	ErrReconcileConsoleService = errors.New("failed to reconcile console service")
-
-	// ErrReconcileConsoleNetPolicy is returned when the console NetworkPolicy reconciliation fails.
-	ErrReconcileConsoleNetPolicy = errors.New("failed to reconcile console network policy")
-
-	// ErrReconcileConsoleSA is returned when the console ServiceAccount reconciliation fails.
-	ErrReconcileConsoleSA = errors.New("failed to reconcile console service account")
-
-	// ErrReconcileConsoleTLSSecret is returned when the console TLS Secret reconciliation fails.
-	ErrReconcileConsoleTLSSecret = errors.New("failed to reconcile console TLS secret")
-
-	// ErrActivateConsolePlugin is returned when the console plugin cannot be activated.
-	ErrActivateConsolePlugin = errors.New("failed to activate console plugin")
-
-	// ErrDeactivateConsolePlugin is returned when the console plugin cannot be deactivated.
-	ErrDeactivateConsolePlugin = errors.New("failed to deactivate console plugin")
-
-	// ErrDeleteConsolePlugin is returned when the console plugin cannot be deleted.
-	ErrDeleteConsolePlugin = errors.New("failed to delete console plugin")
-
 	// ErrCreateOKPDeployment is returned when the OKP Deployment cannot be created.
 	ErrCreateOKPDeployment = errors.New("failed to create OKP deployment")
 
