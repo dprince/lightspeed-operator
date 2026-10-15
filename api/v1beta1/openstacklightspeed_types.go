@@ -351,6 +351,7 @@ type OpenStackLightspeedCore struct {
 	// +kubebuilder:validation:MinItems=1
 	// +listType=map
 	// +listMapKey=name
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Models"
 	// Models configures available LLM models.
 	Models []OpenStackLightspeedModelSpec `json:"models"`
 

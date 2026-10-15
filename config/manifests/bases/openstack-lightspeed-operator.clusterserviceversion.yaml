@@ -109,6 +109,9 @@ spec:
       - description: DefaultModel is the model alias selected by default for inference.
         displayName: Default Model
         path: defaultModel
+      - description: Models configures available LLM models.
+        displayName: Models
+        path: models
       - description: Name is the Kubernetes-style alias for this configured model.
         displayName: Model Alias
         path: models[0].name
