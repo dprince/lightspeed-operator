@@ -174,6 +174,21 @@ rules:
       - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: lightspeed-access
+  labels:
+    app.kubernetes.io/component: app-server
+    app.kubernetes.io/managed-by: openstack-lightspeed-operator
+    app.kubernetes.io/name: openstack-lightspeed-app-server
+    app.kubernetes.io/part-of: openstack-lightspeed
+rules:
+  - nonResourceURLs:
+      - /ls-access
+    verbs:
+      - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: lightspeed-app-server-sar-role-binding
