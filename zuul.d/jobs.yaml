@@ -4,11 +4,21 @@
     name: lightspeed-operator-deployment-crc
     parent: podified-multinode-hci-deployment-crc-1comp-backends
     attempts: 1
+    final: true
     dependencies:
       - openstack-k8s-operators-content-provider
     required-projects:
       - openstack-k8s-operators/lightspeed-operator
       - openstack-k8s-operators/ci-framework
+    secrets:
+      - name: openai_credentials
+        secret: lightspeed-openai-token
+    # Creates the token Secret in-cluster before the run (see playbook header).
+    pre-run: ci/playbooks/create_lightspeed_secret.yml
+    # cleanup: true so Zuul still attempts the delete when the job is canceled.
+    post-run:
+      - name: ci/playbooks/cleanup_lightspeed_secret.yml
+        cleanup: true
     vars:
       pre_tests_01_deploy_lightspeed_operator:
         source: install-openstack-lightspeed.yml
@@ -21,8 +31,8 @@
       cifmw_openstack_lightspeed_llm_endpoint: "https://api.example.com/v1/chat/completions"
       cifmw_openstack_lightspeed_model_name: "example-model"
 
-      # Mock token for CI deployment testing (operator installs but service won't be functional)
-      cifmw_openstack_lightspeed_api_token: "dummy-token-for-ci"
+      # api_token intentionally unset: the hook verifies the pre-created Secret
+      # instead. The openai_credentials var is out of scope here (see playbook).
 
       # TLS CA cert omitted for CI - not needed for dummy endpoint testing
       # Operator fails to parse invalid PEM data; omitting allows reconciliation to proceed
