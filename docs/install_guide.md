@@ -145,10 +145,11 @@ This deploys the full stack: the AI engine (lightspeed-stack and
 OGX), PostgreSQL, and OKP.
 
 > [!NOTE]
-> A single OpenStackLightspeed instance is supported
-> in the openstack-lightspeed namespace. The validating webhook rejects
-> additional instances at creation time. To replace an instance, delete it
-> and wait for its removal before creating another.
+> Only `OwnNamespace` installations are supported; therefore, you can create
+> `OpenStackLightspeed` only in the namespace where the operator is installed.
+> Additionally, no more than one `OpenStackLightspeed` instance is allowed. If
+> you create more than one `OpenStackLightspeed` instance within the namespace
+> where the operator is installed, it will be rejected.
 
 ## Verifying the deployment
 
