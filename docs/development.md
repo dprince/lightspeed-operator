@@ -23,6 +23,44 @@ cd ../..
 `PULL_SECRET` is the same pull secret described in the
 [installation guide](install_guide.md#access-to-registry-images).
 
+## Releasing to the community catalog
+
+The **Propose community operator release** GitHub Actions workflow uses
+already-published operator and bundle images from Quay. It resolves the selected
+tag to image digests, extracts the bundle, and updates its version, community
+metadata, and upgrade link to the preceding release. It runs bundle validation
+and scorecard tests (in a temporary Kind cluster), then opens or updates a PR in
+[community-operators-prod](https://github.com/redhat-openshift-ecosystem/community-operators-prod).
+The current targets are the `alpha` channel on OpenShift 4.16, 4.18, 4.22 configured
+in `.github/scripts/prepare_community_bundle.sh`.
+
+Before the first release, a repository administrator must configure these
+Actions secrets and variables:
+
+- Secret `COMMUNITY_OPERATORS_TOKEN`: a bot account token that can push to the
+  fork and create or update upstream PRs.
+- Variable `COMMUNITY_OPERATORS_FORK`: the existing fork, in `owner/repository`
+  format (for example, `openstack-lightspeed-bot/community-operators-prod`).
+- Variables `RELEASE_AUTHOR_NAME` and `RELEASE_AUTHOR_EMAIL`: the bot's Git
+  commit identity.
+
+To make a release:
+
+1. Wait for **Build and push operator container image** to finish successfully
+   for the code you want to release.
+2. In the `lightspeed-operator` repository, open **Actions → Propose community
+   operator release → Run workflow**.
+3. Set `new_version` to the next community version, such as `0.0.3` (without a
+   `v` prefix). It must not already exist in the catalog. Set
+   `container_image_tag` to `latest` (the default, from the latest main build),
+   or a specific build tag such as `v0.1.0-<short-commit-sha>`.
+4. Click **Run workflow**. If validation and scorecard pass, the run summary
+   contains the upstream PR link. Follow that PR's checks and review through
+   merge; the upstream pipeline handles publication to the catalog.
+
+After publication, verify installation and a Lightspeed query on an OpenShift
+cluster using the [installation guide](install_guide.md).
+
 ## Architecture
 
 ```mermaid
