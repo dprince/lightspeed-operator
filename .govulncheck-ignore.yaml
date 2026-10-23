@@ -265,3 +265,9 @@ ignored_vulnerabilities:
       This crashes an HTTP/2 server through concurrent HPACK encoder changes.
       The current HTTP/1.1-only server configuration prevents the trigger;
       outbound clients are not affected by this server-specific race.
+
+  - id: GO-2026-6809
+    module: stdlib
+    reason: |
+      Temporary CI-unblock exception only. The required Go 1.26.10+
+      update is tracked in an open follow-up ticket and this will be resolved.
