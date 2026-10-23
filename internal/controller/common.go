@@ -24,7 +24,6 @@ import (
 	"math"
 	"math/big"
 	"strings"
-	"sync"
 	"time"
 
 	common_cm "github.com/openstack-k8s-operators/lib-common/modules/common/configmap"
@@ -35,68 +34,11 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	k8s_errors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
-)
-
-// clusterClient is a process-lifetime, uncached client used for cluster-wide
-// reads (not restricted to WATCH_NAMESPACE). It is initialized once from
-// SetupWithManager when possible, or lazily on first getRawClient call.
-var (
-	clusterClientMu sync.Mutex
-	clusterClient   client.Client
 )
 
 // toPtr returns a pointer to the given value.
 func toPtr[T any](v T) *T {
 	return &v
-}
-
-// initClusterClient creates a single uncached cluster-wide client that shares
-// the manager's HTTP client and REST mapper, avoiding repeated client.New
-// allocations (HTTP transport + DynamicRESTMapper) on every reconcile.
-func initClusterClient(mgr ctrl.Manager) error {
-	c, err := client.New(mgr.GetConfig(), client.Options{
-		Scheme:     mgr.GetScheme(),
-		Mapper:     mgr.GetRESTMapper(),
-		HTTPClient: mgr.GetHTTPClient(),
-	})
-	if err != nil {
-		return fmt.Errorf("failed to create cluster-wide client: %w", err)
-	}
-
-	clusterClientMu.Lock()
-	clusterClient = c
-	clusterClientMu.Unlock()
-	return nil
-}
-
-// getRawClient returns a raw client that is not restricted to WATCH_NAMESPACE.
-// This is useful for operations that need to query resources across all namespaces
-// cluster wide. The client is created once and reused for the process lifetime.
-func getRawClient(helper *common_helper.Helper) (client.Client, error) {
-	clusterClientMu.Lock()
-	defer clusterClientMu.Unlock()
-
-	if clusterClient != nil {
-		return clusterClient, nil
-	}
-
-	// Fallback for tests / early calls before SetupWithManager.
-	// Transient failures are not sticky: the next call retries creation.
-	cfg, err := config.GetConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	c, err := client.New(cfg, client.Options{Scheme: helper.GetScheme()})
-	if err != nil {
-		return nil, err
-	}
-
-	clusterClient = c
-	return clusterClient, nil
 }
 
 // generateAppServerSelectorLabels returns a map of labels used as selectors

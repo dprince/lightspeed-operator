@@ -24,7 +24,6 @@ import (
 
 	apiv1beta1 "github.com/openstack-k8s-operators/lightspeed-operator/api/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 // TestOKPChunkFilterQueryFmtExcludesOpenShiftVirtualization guards against OKP RAG
@@ -121,36 +120,6 @@ func TestGenerateRandomStringUniqueness(t *testing.T) {
 	}
 	if a == b {
 		t.Errorf("generateRandomString(%d) returned identical values across two calls: %q", length, a)
-	}
-}
-
-func TestGetRawClientReturnsCachedClient(t *testing.T) {
-	cached := fake.NewClientBuilder().Build()
-
-	clusterClientMu.Lock()
-	prev := clusterClient
-	clusterClient = cached
-	clusterClientMu.Unlock()
-	t.Cleanup(func() {
-		clusterClientMu.Lock()
-		clusterClient = prev
-		clusterClientMu.Unlock()
-	})
-
-	got, err := getRawClient(nil)
-	if err != nil {
-		t.Fatalf("getRawClient() unexpected error: %v", err)
-	}
-	if got != cached {
-		t.Fatal("getRawClient() did not return the cached cluster client")
-	}
-
-	got2, err := getRawClient(nil)
-	if err != nil {
-		t.Fatalf("getRawClient() second call unexpected error: %v", err)
-	}
-	if got2 != got {
-		t.Fatal("getRawClient() returned a different client on second call")
 	}
 }
 

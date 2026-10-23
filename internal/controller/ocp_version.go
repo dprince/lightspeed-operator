@@ -29,12 +29,6 @@ import (
 
 // DetectOCPVersion detects the OpenShift cluster version
 func DetectOCPVersion(ctx context.Context, helper *common_helper.Helper) (string, error) {
-	// Use raw client to access cluster-scoped resources
-	rawClient, err := getRawClient(helper)
-	if err != nil {
-		return "", fmt.Errorf("failed to get raw client: %w", err)
-	}
-
 	// Get ClusterVersion object
 	clusterVersion := &uns.Unstructured{}
 	clusterVersion.SetGroupVersionKind(schema.GroupVersionKind{
@@ -43,7 +37,7 @@ func DetectOCPVersion(ctx context.Context, helper *common_helper.Helper) (string
 		Kind:    "ClusterVersion",
 	})
 
-	err = rawClient.Get(ctx, client.ObjectKey{Name: "version"}, clusterVersion)
+	err := helper.GetClient().Get(ctx, client.ObjectKey{Name: "version"}, clusterVersion)
 	if err != nil {
 		return "", fmt.Errorf("failed to get ClusterVersion: %w", err)
 	}

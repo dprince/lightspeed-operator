@@ -327,10 +327,6 @@ func (r *OpenStackLightspeedReconciler) GetOpenStackLightspeed(ctx context.Conte
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *OpenStackLightspeedReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := initClusterClient(mgr); err != nil {
-		return err
-	}
-
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&apiv1beta1.OpenStackLightspeed{}).
 		Owns(&appsv1.Deployment{}).
